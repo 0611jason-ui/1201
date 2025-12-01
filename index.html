@@ -113,26 +113,27 @@
                 </div>
             </header>
 
-            <!-- 天氣卡片：移除 onclick 事件，改為內部按鈕觸發，以免干擾圖表操作 -->
-            <div id="weather-card" class="app-card p-6 mb-8 bg-gradient-to-br from-indigo-500 to-indigo-600 text-white shadow-xl overflow-hidden relative">
+            <!-- 天氣卡片：調整高度與內距 -->
+            <div id="weather-card" class="app-card p-5 mb-8 bg-gradient-to-br from-indigo-500 to-indigo-600 text-white shadow-xl overflow-hidden relative">
                 <div id="weather-content" class="relative z-10">
-                    <div class="flex justify-between items-start mb-4">
+                    <div class="flex justify-between items-center mb-2 px-1">
                         <div onclick="window.open(WEATHER_LINK, '_blank')" class="cursor-pointer">
-                            <p id="weather-location" class="text-xl font-medium mb-1">東京</p>
-                            <h2 id="weather-temp" class="text-3xl font-extrabold flex items-center">
-                                4°C <span class="text-sm font-normal ml-2 opacity-80">(預測)</span>
+                            <h2 class="text-2xl font-bold flex items-baseline">
+                                東京 <span class="text-sm font-normal ml-2 opacity-80">未來一週預報</span>
                             </h2>
-                            <p id="weather-desc" class="text-sm opacity-90 mt-1">寒冷 / 晴時多雲</p>
                         </div>
-                        <i id="weather-icon" data-lucide="cloud-sun" class="w-12 h-12 text-white/90"></i>
+                        <div class="flex items-center space-x-3 text-xs opacity-90">
+                            <span class="flex items-center"><div class="w-2 h-2 rounded-full bg-white mr-1"></div>溫度</span>
+                            <span class="flex items-center"><div class="w-2 h-2 rounded-sm bg-blue-300 mr-1"></div>降雨機率</span>
+                        </div>
                     </div>
                     
-                    <!-- D3 圖表容器 -->
-                    <div id="weather-chart-container" class="w-full h-32 mt-2"></div>
+                    <!-- D3 圖表容器：增加高度以利閱讀 -->
+                    <div id="weather-chart-container" class="w-full h-48"></div>
                     
-                    <div class="mt-2 pt-2 border-t border-white/30 text-xs flex justify-between cursor-pointer" onclick="window.open(WEATHER_LINK, '_blank')">
-                        <span id="weather-high-low">查看氣象廳詳情</span>
-                        <i data-lucide="external-link" class="w-4 h-4 text-white/90"></i>
+                    <div class="mt-1 pt-2 border-t border-white/20 text-xs flex justify-between cursor-pointer opacity-80 hover:opacity-100 transition-opacity" onclick="window.open(WEATHER_LINK, '_blank')">
+                        <span id="weather-high-low">資料來源：日本氣象廳 (JMA)</span>
+                        <i data-lucide="external-link" class="w-4 h-4"></i>
                     </div>
                 </div>
             </div>
@@ -257,11 +258,27 @@
         <!-- 新增記帳頁面 -->
         <div id="budget-page" class="page-transition hidden-page">
             <header class="mb-6">
-                <h1 class="text-3xl font-bold text-gray-800 tracking-wider">旅遊記帳</h1>
-                <div class="mt-2 flex items-baseline">
-                    <p class="text-sm text-gray-400 mr-2">總支出</p>
-                    <p id="total-expense" class="text-3xl font-bold text-indigo-600">¥0</p>
-                    <p id="total-expense-twd" class="text-sm text-gray-400 ml-2">(約 NT$0)</p>
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-800 tracking-wider">旅遊記帳</h1>
+                        <div class="mt-2 flex items-baseline">
+                            <p class="text-sm text-gray-400 mr-2">總支出</p>
+                            <p id="total-expense" class="text-3xl font-bold text-indigo-600">¥0</p>
+                            <p id="total-expense-twd" class="text-sm text-gray-400 ml-2">(約 NT$0)</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 分享按鈕區塊 -->
+                <div class="mt-4 p-3 bg-indigo-50 border border-indigo-100 rounded-xl flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-bold text-indigo-700 mb-0.5">與旅伴同步記帳</p>
+                        <p class="text-[10px] text-indigo-500">產生網址連結分享給朋友</p>
+                    </div>
+                    <button onclick="copyShareLink()" class="px-3 py-1.5 bg-indigo-600 text-white text-xs font-bold rounded-lg shadow-sm active:scale-95 transition-transform flex items-center">
+                        <i data-lucide="link" class="w-3 h-3 mr-1.5"></i>
+                        複製分享連結
+                    </button>
                 </div>
             </header>
 
@@ -594,123 +611,210 @@
             }
 
             totalEl.innerText = `¥${total.toLocaleString()}`;
-            // 簡易匯率換算 (0.23)
-            const twd = Math.round(total * 0.23);
+            // 更新匯率為 0.205
+            const twd = Math.round(total * 0.205);
             totalTwdEl.innerText = `(約 NT$${twd.toLocaleString()})`;
 
             window.lucide.createIcons();
         }
 
+        // 新增：產生並複製記帳分享連結
+        function copyShareLink() {
+            // 將 expenses 陣列轉為字串 -> 編碼為 Base64 (處理中文編碼問題)
+            try {
+                const jsonStr = JSON.stringify(expenses);
+                const base64Str = btoa(unescape(encodeURIComponent(jsonStr)));
+                
+                // 取得當前網址並附加參數
+                const url = new URL(window.location.href);
+                url.searchParams.set('budget_data', base64Str);
+                
+                // 複製到剪貼簿
+                navigator.clipboard.writeText(url.toString()).then(() => {
+                    alert('連結已複製！請傳給朋友，他們打開後即可載入你的記帳資料。');
+                }).catch(err => {
+                    console.error('複製失敗', err);
+                    alert('複製失敗，請手動複製網址');
+                });
+            } catch (e) {
+                console.error('編碼錯誤', e);
+                alert('資料過大或錯誤，無法建立分享連結');
+            }
+        }
+
         // ----------------------------------------------------
-        // 4. D3.js 天氣圖表功能 (Weather Chart)
+        // 4. D3.js 天氣圖表功能 (Weather Chart) - 重新設計版 (防重疊)
         // ----------------------------------------------------
         function renderWeatherChart() {
             // 清除舊圖表
             d3.select("#weather-chart-container").html("");
 
-            // 模擬東京 1/11 - 1/16 天氣數據
+            // 模擬東京 1/11 (週日) - 1/16 (週五) 天氣數據
             const data = [
-                { date: '1/11', temp: 8, rain: 10 },
-                { date: '1/12', temp: 7, rain: 20 },
-                { date: '1/13', temp: 5, rain: 0 },
-                { date: '1/14', temp: 4, rain: 40 },
-                { date: '1/15', temp: 6, rain: 10 },
-                { date: '1/16', temp: 9, rain: 0 }
+                { date: '1/11', day: '週日', temp: 8, rain: 10 },
+                { date: '1/12', day: '週一', temp: 7, rain: 20 },
+                { date: '1/13', day: '週二', temp: 5, rain: 0 },
+                { date: '1/14', day: '週三', temp: 4, rain: 40 },
+                { date: '1/15', day: '週四', temp: 6, rain: 10 },
+                { date: '1/16', day: '週五', temp: 9, rain: 0 }
             ];
 
             const container = document.getElementById("weather-chart-container");
             const width = container.offsetWidth;
             const height = container.offsetHeight;
-            const margin = { top: 10, right: 10, bottom: 20, left: 25 };
+            const margin = { top: 30, right: 20, bottom: 40, left: 20 };
 
             const svg = d3.select("#weather-chart-container")
                 .append("svg")
                 .attr("width", width)
-                .attr("height", height)
-                .append("g")
-                .attr("transform", `translate(${margin.left},${margin.top})`);
+                .attr("height", height);
+            
+            // 定義漸層 (用於溫度區域填充)
+            const defs = svg.append("defs");
+            const gradient = defs.append("linearGradient")
+                .attr("id", "temp-gradient")
+                .attr("x1", "0%")
+                .attr("y1", "0%")
+                .attr("x2", "0%")
+                .attr("y2", "100%");
+            
+            gradient.append("stop")
+                .attr("offset", "0%")
+                .attr("stop-color", "white")
+                .attr("stop-opacity", 0.5);
+            
+            gradient.append("stop")
+                .attr("offset", "100%")
+                .attr("stop-color", "white")
+                .attr("stop-opacity", 0);
 
             const innerWidth = width - margin.left - margin.right;
             const innerHeight = height - margin.top - margin.bottom;
+
+            const g = svg.append("g")
+                .attr("transform", `translate(${margin.left},${margin.top})`);
 
             // X 軸比例尺
             const x = d3.scaleBand()
                 .domain(data.map(d => d.date))
                 .range([0, innerWidth])
-                .padding(0.3);
+                .padding(0.4);
 
-            // Y 軸比例尺 (左邊：溫度)
+            // *** 關鍵修改：將高度空間分為兩部分，避免重疊 ***
+            
+            // Y 軸比例尺 (溫度) - 只使用上方 65% 的空間
             const yTemp = d3.scaleLinear()
-                .domain([0, 15]) // 0-15度
-                .range([innerHeight, 0]);
+                .domain([0, 15]) 
+                .range([innerHeight * 0.65, 0]);
 
-            // Y 軸比例尺 (右邊：降雨機率，給長條圖用，但我們讓長條圖高度稍微矮一點，不要頂到天)
+            // Y 軸比例尺 (降雨機率) - 只使用下方 25% 的空間 (保留中間 10% 緩衝)
             const yRain = d3.scaleLinear()
                 .domain([0, 100])
-                .range([innerHeight, 0]);
+                .range([innerHeight, innerHeight * 0.75]); 
 
-            // 繪製降雨機率 (長條圖) - 使用半透明白色
-            svg.selectAll(".bar")
+            // 1. 繪製降雨機率 (長條圖)
+            g.selectAll(".bar-rain")
                 .data(data)
                 .enter().append("rect")
-                .attr("class", "bar")
+                .attr("class", "bar-rain")
                 .attr("x", d => x(d.date))
                 .attr("width", x.bandwidth())
                 .attr("y", d => yRain(d.rain))
                 .attr("height", d => innerHeight - yRain(d.rain))
-                .attr("fill", "white")
-                .attr("opacity", 0.3)
-                .attr("rx", 2); // 圓角
+                .attr("fill", "#93c5fd")
+                .attr("opacity", 0.9)
+                .attr("rx", 3);
 
-            // 繪製溫度 (折線圖)
+            // 降雨文字 (如果有降雨機率才顯示) - 顯示在長條圖上方，但限制位置不會太高
+            g.selectAll(".text-rain")
+                .data(data)
+                .enter().append("text")
+                .filter(d => d.rain > 0)
+                .attr("x", d => x(d.date) + x.bandwidth() / 2)
+                .attr("y", d => yRain(d.rain) - 6) // 文字稍微再往上一點點
+                .attr("text-anchor", "middle")
+                .attr("fill", "#bfdbfe")
+                .attr("font-size", "10px")
+                .attr("font-weight", "bold")
+                .text(d => `${d.rain}%`);
+
+            // 2. 繪製溫度 (區域圖 + 折線圖)
+            const area = d3.area()
+                .x(d => x(d.date) + x.bandwidth() / 2)
+                .y0(innerHeight * 0.65) // 區域填充到底部為止 (Temp 的底部)
+                .y1(d => yTemp(d.temp))
+                .curve(d3.curveMonotoneX);
+
             const line = d3.line()
                 .x(d => x(d.date) + x.bandwidth() / 2)
                 .y(d => yTemp(d.temp))
-                .curve(d3.curveMonotoneX); // 平滑曲線
+                .curve(d3.curveMonotoneX);
+
+            // 區域填充
+            g.append("path")
+                .datum(data)
+                .attr("fill", "url(#temp-gradient)")
+                .attr("d", area);
 
             // 線條
-            svg.append("path")
+            g.append("path")
                 .datum(data)
                 .attr("fill", "none")
                 .attr("stroke", "white")
-                .attr("stroke-width", 2)
-                .attr("d", line);
+                .attr("stroke-width", 3)
+                .attr("d", line)
+                .attr("filter", "drop-shadow(0 2px 2px rgba(0,0,0,0.1))"); 
 
             // 溫度點
-            svg.selectAll(".dot")
+            g.selectAll(".dot")
                 .data(data)
                 .enter().append("circle")
                 .attr("cx", d => x(d.date) + x.bandwidth() / 2)
                 .attr("cy", d => yTemp(d.temp))
-                .attr("r", 3)
-                .attr("fill", "white");
+                .attr("r", 4)
+                .attr("fill", "white")
+                .attr("stroke", "rgba(79, 70, 229, 0.5)") 
+                .attr("stroke-width", 1);
 
-            // 溫度文字標籤
-            svg.selectAll(".text-temp")
+            // 溫度數值
+            g.selectAll(".text-temp")
                 .data(data)
                 .enter().append("text")
                 .attr("x", d => x(d.date) + x.bandwidth() / 2)
-                .attr("y", d => yTemp(d.temp) - 8)
+                .attr("y", d => yTemp(d.temp) - 10)
                 .attr("text-anchor", "middle")
                 .attr("fill", "white")
-                .attr("font-size", "10px")
+                .attr("font-size", "14px")
                 .attr("font-weight", "bold")
+                .style("text-shadow", "0 1px 2px rgba(0,0,0,0.2)")
                 .text(d => `${d.temp}°`);
 
-            // X 軸文字
-            svg.selectAll(".text-date")
+            // 3. X 軸標籤 (日期 + 星期)
+            const xAxisGroup = g.append("g")
+                .attr("transform", `translate(0, ${innerHeight + 15})`);
+
+            // 日期 (1/11)
+            xAxisGroup.selectAll(".text-date")
                 .data(data)
                 .enter().append("text")
                 .attr("x", d => x(d.date) + x.bandwidth() / 2)
-                .attr("y", innerHeight + 12) // 放在底部
+                .attr("y", 0)
                 .attr("text-anchor", "middle")
-                .attr("fill", "rgba(255,255,255,0.8)")
-                .attr("font-size", "9px")
+                .attr("fill", "rgba(255,255,255,0.9)")
+                .attr("font-size", "11px")
+                .attr("font-weight", "500")
                 .text(d => d.date);
-
-            // 簡單的圖例 (左上角)
-            svg.append("text").attr("x", 0).attr("y", -2).text("— 溫度").attr("fill", "white").attr("font-size", "8px").attr("opacity", 0.8);
-            svg.append("text").attr("x", 35).attr("y", -2).text("▮ 降雨%").attr("fill", "white").attr("font-size", "8px").attr("opacity", 0.6);
+            
+            // 星期 (週日)
+            xAxisGroup.selectAll(".text-day")
+                .data(data)
+                .enter().append("text")
+                .attr("x", d => x(d.date) + x.bandwidth() / 2)
+                .attr("y", 14)
+                .attr("text-anchor", "middle")
+                .attr("fill", "rgba(255,255,255,0.6)")
+                .attr("font-size", "10px")
+                .text(d => d.day);
         }
 
         // ----------------------------------------------------
@@ -880,16 +984,6 @@
             window.lucide.createIcons();
         }
 
-        // 複製文字功能
-        function copyToClipboard(text) {
-            navigator.clipboard.writeText(text).then(() => {
-                // 可以加個簡單的 Toast 提示，這裡先用 alert 替代
-                alert('已複製：' + text);
-            }).catch(err => {
-                console.error('複製失敗', err);
-            });
-        }
-
         // C. 顯示 Modal 詳情
         function showDetailModal(day, index) {
             const item = itineraryData[day].items[index];
@@ -897,7 +991,7 @@
             
             let actionButtons = '';
             
-            // 1. 導航按鈕
+            // 1. 導航按鈕 (已移除複製地址按鈕)
             if (item.mapLink) {
                 actionButtons += `<a href="${item.mapLink}" target="_blank" class="w-full py-3.5 rounded-xl font-bold text-white bg-blue-500 hover:bg-blue-600 active:scale-[0.99] transition-transform flex items-center justify-center mt-4">
                                 <i data-lucide="map-pin" class="w-5 h-5 mr-2"></i>
@@ -915,14 +1009,6 @@
                                 導航至此地
                              </a>`;
             }
-
-            // 2. 複製名稱/地址按鈕
-            const textToCopy = item.address || item.title;
-            actionButtons += `<button onclick="copyToClipboard('${textToCopy}')" class="w-full py-3.5 rounded-xl font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 active:scale-[0.99] transition-transform flex items-center justify-center mt-2 border border-gray-200">
-                                <i data-lucide="copy" class="w-5 h-5 mr-2"></i>
-                                複製名稱/地址
-                              </button>`;
-
 
             modalBody.innerHTML = `
                 <div class="text-center mb-6">
@@ -1041,24 +1127,55 @@
             el.innerText = `距離出發還有 ${days} 天`;
         }
 
+        // 新增：處理 URL 中的記帳分享資料
+        function loadSharedBudget() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const sharedData = urlParams.get('budget_data');
+            
+            if (sharedData) {
+                try {
+                    // 解碼流程：Base64 -> String (UTF8) -> JSON Object
+                    const jsonStr = decodeURIComponent(escape(atob(sharedData)));
+                    const sharedExpenses = JSON.parse(jsonStr);
+                    
+                    if (Array.isArray(sharedExpenses) && sharedExpenses.length > 0) {
+                        if(confirm('偵測到分享的記帳資料，是否要載入並覆蓋目前的紀錄？')) {
+                            expenses = sharedExpenses;
+                            localStorage.setItem('trip_expenses', JSON.stringify(expenses));
+                            // 清除 URL 參數避免重複詢問，保持網址乾淨
+                            const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+                            window.history.pushState({path:newUrl},'',newUrl);
+                            alert('記帳資料已成功載入！');
+                        }
+                    }
+                } catch (e) {
+                    console.error('載入分享資料失敗', e);
+                    alert('連結無效或資料格式錯誤');
+                }
+            }
+        }
+
         // F. 應用程式初始化
         function initApp() {
             // 1. 確保 Lucide 圖標被渲染
             window.lucide.createIcons();
             
-            // 2. 渲染初始頁面 (Home)
+            // 2. 檢查是否有分享的記帳資料
+            loadSharedBudget();
+
+            // 3. 渲染初始頁面 (Home)
             renderPage('home');
 
-            // 3. 渲染行前檢查清單
+            // 4. 渲染行前檢查清單
             renderPackingList();
 
-            // 4. 動態渲染天數按鈕
+            // 5. 動態渲染天數按鈕
             renderDayTabs();
 
-            // 5. 初始化倒數計時
+            // 6. 初始化倒數計時
             initCountdown();
 
-            // 6. 初始化天氣圖表 (使用 setTimeout 確保容器寬度已計算)
+            // 7. 初始化天氣圖表 (使用 setTimeout 確保容器寬度已計算)
             setTimeout(renderWeatherChart, 100);
         }
 
@@ -1074,5 +1191,4 @@
 
     </script>
 </body>
-
 </html>
