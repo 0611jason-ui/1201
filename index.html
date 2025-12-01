@@ -113,13 +113,11 @@
             <header class="mb-8">
                 <h1 class="text-3xl font-bold text-gray-800 tracking-wider">東京六日輕旅</h1>
                 <p class="text-sm text-gray-400 mt-1">2026.01.11 - 01.16 | 歡迎回來！</p>
-                <!-- 倒數計時區塊 -->
                 <div id="countdown-timer" class="mt-3 inline-block bg-rose-100 text-rose-600 px-3 py-1 rounded-full text-xs font-bold tracking-wide hidden">
                     計算中...
                 </div>
             </header>
 
-            <!-- 天氣卡片 -->
             <div id="weather-card" onclick="window.open(WEATHER_LINK, '_blank')" class="app-card interactive p-6 mb-8 bg-gradient-to-br from-indigo-500 to-indigo-600 text-white shadow-xl overflow-hidden relative">
                 <div id="weather-content" class="relative z-10">
                     <div class="flex justify-between items-start mb-4">
@@ -133,7 +131,6 @@
                         <i id="weather-main-icon" data-lucide="cloud" class="w-12 h-12 text-white/90"></i>
                     </div>
                     
-                    <!-- D3 Chart Container -->
                     <div id="weather-chart" class="w-full h-32 mt-2"></div>
 
                     <div class="mt-2 pt-2 border-t border-white/20 text-xs flex justify-between">
@@ -220,22 +217,21 @@
                 </ul>
             </div>
 
-             <!-- 緊急聯絡卡 -->
              <div class="app-card p-4 mb-8 bg-red-50 border border-red-100 text-center">
                 <p class="text-xs font-bold text-red-500 uppercase tracking-wider mb-3">緊急聯絡資訊</p>
                 <div class="flex justify-around text-sm">
-                    <a href="tel:110" class="flex flex-col items-center text-gray-700">
+                    <div class="flex flex-col items-center text-gray-700">
                         <span class="font-bold text-lg">110</span>
                         <span class="text-xs text-gray-400">警察局</span>
-                    </a>
-                    <a href="tel:119" class="flex flex-col items-center text-gray-700">
+                    </div>
+                    <div class="flex flex-col items-center text-gray-700">
                         <span class="font-bold text-lg">119</span>
                         <span class="text-xs text-gray-400">火警/救護</span>
-                    </a>
-                    <a href="tel:+81-3-3280-7111" class="flex flex-col items-center text-gray-700">
+                    </div>
+                    <div class="flex flex-col items-center text-gray-700">
                         <span class="font-bold text-lg">駐日代表</span>
                         <span class="text-xs text-gray-400">+81-3-3280-7111</span>
-                    </a>
+                    </div>
                 </div>
             </div>
             
@@ -254,7 +250,6 @@
             <div id="timeline-container" class="pb-10"></div>
         </div>
 
-        <!-- 記帳頁面 -->
         <div id="budget-page" class="page-transition hidden-page">
             <header class="mb-6">
                 <h1 class="text-3xl font-bold text-gray-800 tracking-wider">旅遊錢包</h1>
@@ -276,14 +271,11 @@
                 </div>
             </div>
 
-            <!-- 新增支出表單 -->
             <div class="app-card p-5 mb-6 shadow-md">
                 <p class="text-xs font-bold text-gray-500 uppercase mb-3">新增支出</p>
                 
-                <!-- 類別選擇 -->
                 <div class="grid grid-cols-6 gap-2 mb-4" id="category-selector">
-                    <!-- 由 JS 動態生成 -->
-                </div>
+                    </div>
 
                 <div class="grid grid-cols-1 gap-3 mb-4">
                     <div class="flex items-center bg-gray-50 rounded-xl px-3 border border-gray-200 focus-within:border-indigo-500 transition-colors">
@@ -300,29 +292,58 @@
                 </button>
             </div>
 
-            <!-- 支出列表 -->
             <div class="space-y-3 pb-24" id="expense-list">
-                <!-- 動態生成 -->
                 <div class="text-center text-gray-400 text-sm py-10">
                     尚無支出紀錄
                 </div>
             </div>
         </div>
+        
+        <div id="translate-page" class="page-transition hidden-page">
+            <header class="mb-6">
+                <h1 class="text-3xl font-bold text-gray-800 tracking-wider">翻譯小幫手</h1>
+                <p class="text-sm text-gray-400 mt-1">指指通與快速翻譯</p>
+            </header>
+
+            <div class="app-card p-5 mb-6 bg-white border border-gray-100">
+                <p class="text-xs font-bold text-indigo-500 uppercase mb-2 flex items-center">
+                    <i data-lucide="languages" class="w-4 h-4 mr-1"></i>
+                    自訂翻譯
+                </p>
+                <div class="relative">
+                    <textarea id="custom-trans-input" rows="2" placeholder="輸入中文 (例如：請問這附近有便利商店嗎？)" class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-indigo-500 resize-none"></textarea>
+                </div>
+                <button onclick="openGoogleTranslate()" class="mt-3 w-full bg-indigo-50 hover:bg-indigo-100 text-indigo-600 font-bold py-3 rounded-xl flex items-center justify-center transition-colors">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/d/db/Google_Translate_Icon.png" class="w-5 h-5 mr-2 opacity-80" alt="Google">
+                    前往 Google 翻譯
+                </button>
+            </div>
+
+            <div id="phrase-categories" class="flex space-x-2 overflow-x-auto pb-2 mb-4 no-scrollbar">
+                </div>
+
+            <div id="phrase-list" class="space-y-3 pb-24">
+                </div>
+        </div>
 
 
     <nav class="fixed bottom-0 left-0 right-0 max-w-xl mx-auto z-30 p-4 bg-white shadow-[0_-4px_15px_rgba(0,0,0,0.03)] rounded-t-2xl">
-        <div class="flex justify-around">
+        <div class="grid grid-cols-4 gap-1">
             <button id="nav-home" onclick="renderPage('home')" class="flex flex-col items-center p-2 text-gray-800 active-nav-item transition-colors">
                 <i data-lucide="house" class="w-5 h-5"></i>
-                <span class="text-xs mt-1 font-medium">主頁</span>
+                <span class="text-[10px] mt-1 font-medium">主頁</span>
             </button>
             <button id="nav-timeline" onclick="renderPage('timeline')" class="flex flex-col items-center p-2 text-gray-400 inactive-nav-item transition-colors">
                 <i data-lucide="list-checks" class="w-5 h-5"></i>
-                <span class="text-xs mt-1 font-medium">行程</span>
+                <span class="text-[10px] mt-1 font-medium">行程</span>
             </button>
             <button id="nav-budget" onclick="renderPage('budget')" class="flex flex-col items-center p-2 text-gray-400 inactive-nav-item transition-colors">
                 <i data-lucide="wallet" class="w-5 h-5"></i>
-                <span class="text-xs mt-1 font-medium">錢包</span>
+                <span class="text-[10px] mt-1 font-medium">錢包</span>
+            </button>
+            <button id="nav-translate" onclick="renderPage('translate')" class="flex flex-col items-center p-2 text-gray-400 inactive-nav-item transition-colors">
+                <i data-lucide="languages" class="w-5 h-5"></i>
+                <span class="text-[10px] mt-1 font-medium">翻譯</span>
             </button>
         </div>
     </nav>
@@ -344,12 +365,10 @@
         </div>
     </div>
 
-    <!-- 匯率按鈕 -->
     <button onclick="toggleCurrency()" class="fixed bottom-24 right-4 w-12 h-12 bg-gray-800 text-white rounded-full shadow-lg flex items-center justify-center z-40 active:scale-90 transition-transform">
         <span class="font-bold text-xs">¥/$</span>
     </button>
 
-    <!-- 匯率小工具面板 -->
     <div id="currency-modal" class="hidden fixed bottom-40 right-4 w-48 bg-white p-4 rounded-xl shadow-2xl z-40 border border-gray-100 transform transition-all origin-bottom-right">
         <h3 class="text-xs font-bold text-gray-400 mb-2 uppercase">日幣換算 (匯率 0.205)</h3>
         <input type="number" id="jpy-input" placeholder="輸入日幣" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 mb-2" oninput="calcRate()">
@@ -877,9 +896,132 @@
                 .attr("font-size", "11px")
                 .text(d => d.day);
         }
+        
+        // ----------------------------------------------------
+        // 5. 翻譯與指指通功能 (New)
+        // ----------------------------------------------------
+        
+        const phrases = {
+            greeting: {
+                label: "招呼",
+                icon: "smile",
+                color: "orange",
+                items: [
+                    { zh: "你好", jp: "こんにちは", romaji: "Konnichiwa" },
+                    { zh: "謝謝", jp: "ありがとうございます", romaji: "Arigatou gozaimasu" },
+                    { zh: "不好意思 (請問)", jp: "すみません", romaji: "Sumimasen" },
+                    { zh: "是 / 不是", jp: "はい / いいえ", romaji: "Hai / Iie" },
+                    { zh: "請給我這個", jp: "これをください", romaji: "Kore wo kudasai" }
+                ]
+            },
+            dining: {
+                label: "用餐",
+                icon: "utensils",
+                color: "red",
+                items: [
+                    { zh: "4位用餐", jp: "四人です", romaji: "Yonin desu" },
+                    { zh: "有推薦的嗎？", jp: "おすすめはありますか？", romaji: "Osusume wa arimasuka?" },
+                    { zh: "請結帳", jp: "お会計をお願いします", romaji: "Okaikei wo onegaishimasu" },
+                    { zh: "很好吃", jp: "美味しかったです", romaji: "Oishikatta desu" },
+                    { zh: "有中文菜單嗎？", jp: "中国語のメニューはありますか？", romaji: "Chuugokugo no menyuu wa arimasuka?" }
+                ]
+            },
+            shopping: {
+                label: "購物",
+                icon: "shopping-bag",
+                color: "pink",
+                items: [
+                    { zh: "多少錢？", jp: "いくらですか？", romaji: "Ikura desu ka?" },
+                    { zh: "可以免稅嗎？", jp: "免税できますか？", romaji: "Menzei dekimasu ka?" },
+                    { zh: "可以試穿嗎？", jp: "試着してもいいですか？", romaji: "Shichaku shitemo ii desu ka?" },
+                    { zh: "我只是看看", jp: "見ているだけです", romaji: "Miteiru dake desu" }
+                ]
+            },
+            transport: {
+                label: "交通",
+                icon: "train",
+                color: "blue",
+                items: [
+                    { zh: "車站在哪裡？", jp: "駅はどこですか？", romaji: "Eki wa doko desu ka?" },
+                    { zh: "我要去這裏", jp: "ここに行きたいです", romaji: "Koko ni ikitai desu" },
+                    { zh: "這班車到新宿嗎？", jp: "この電車は新宿に行きますか？", romaji: "Kono densha wa Shinjuku ni ikimasu ka?" },
+                    { zh: "請幫我叫計程車", jp: "タクシーを呼んでください", romaji: "Takushii wo yonde kudasai" }
+                ]
+            }
+        };
+        
+        let selectedPhraseCategory = 'greeting';
+
+        function renderPhraseCategories() {
+            const container = document.getElementById('phrase-categories');
+            container.innerHTML = '';
+            
+            Object.keys(phrases).forEach(key => {
+                const cat = phrases[key];
+                const isSelected = key === selectedPhraseCategory;
+                const activeClass = isSelected ? `bg-${cat.color}-500 text-white shadow-md` : `bg-white text-gray-500 border border-gray-200`;
+                
+                const btn = `
+                    <button onclick="selectPhraseCategory('${key}')" 
+                            class="flex-shrink-0 px-4 py-2 rounded-full text-sm font-bold transition-all whitespace-nowrap ${activeClass}">
+                        ${cat.label}
+                    </button>
+                `;
+                container.insertAdjacentHTML('beforeend', btn);
+            });
+        }
+
+        function selectPhraseCategory(key) {
+            selectedPhraseCategory = key;
+            renderPhraseCategories();
+            renderPhraseList();
+        }
+
+        function renderPhraseList() {
+            const container = document.getElementById('phrase-list');
+            container.innerHTML = '';
+            
+            const cat = phrases[selectedPhraseCategory];
+            
+            cat.items.forEach(item => {
+                const html = `
+                    <div class="app-card p-4 flex justify-between items-center active:scale-[0.98] transition-transform cursor-pointer" onclick="speakJapanese('${item.jp}')">
+                        <div>
+                            <div class="font-bold text-gray-800 text-lg">${item.zh}</div>
+                            <div class="text-xs text-gray-400 mt-1">${item.romaji}</div>
+                            <div class="text-xl font-bold text-indigo-600 mt-2">${item.jp}</div>
+                        </div>
+                        <button class="w-10 h-10 rounded-full bg-indigo-50 text-indigo-500 flex items-center justify-center flex-shrink-0 ml-3">
+                            <i data-lucide="volume-2" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', html);
+            });
+            window.lucide.createIcons();
+        }
+
+        function speakJapanese(text) {
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'ja-JP';
+                utterance.rate = 0.9; // 稍微慢一點點
+                window.speechSynthesis.speak(utterance);
+            } else {
+                alert("您的裝置不支援語音播放");
+            }
+        }
+
+        function openGoogleTranslate() {
+            const input = document.getElementById('custom-trans-input').value.trim();
+            const text = encodeURIComponent(input);
+            // 開啟 Google 翻譯網頁，源語言繁體中文，目標語言日文
+            const url = `https://translate.google.com/?sl=zh-TW&tl=ja&text=${text}&op=translate`;
+            window.open(url, '_blank');
+        }
 
         // ----------------------------------------------------
-        // 5. 核心功能函式
+        // 6. 核心功能函式
         // ----------------------------------------------------
 
         function renderDayTabs() {
@@ -1048,8 +1190,11 @@
         }
 
         function renderPage(pageId) {
-            const pages = ['home', 'timeline', 'budget'];
-            const navItems = ['nav-home', 'nav-timeline', 'nav-budget'];
+            // 切換頁面時，強制視窗捲動回最頂端
+            window.scrollTo(0, 0);
+
+            const pages = ['home', 'timeline', 'budget', 'translate'];
+            const navItems = ['nav-home', 'nav-timeline', 'nav-budget', 'nav-translate'];
 
             pages.forEach(id => {
                 const pageElement = document.getElementById(`${id}-page`);
@@ -1078,9 +1223,15 @@
             } else if (pageId === 'budget') {
                 renderCategorySelector();
                 renderBudget();
+            } else if (pageId === 'translate') {
+                renderPhraseCategories();
+                renderPhraseList();
             } else if (pageId === 'home') {
-                // 如果已有天氣資料則重繪，否則抓取
-                fetchWeather();
+                // 如果已有天氣圖表，就不重新 fetch 以節省流量
+                const chartContainer = document.getElementById('weather-chart');
+                if (!chartContainer.innerHTML.trim()) {
+                    fetchWeather();
+                }
             }
         }
 
