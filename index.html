@@ -6,7 +6,6 @@
     <title>🇯🇵 2026日本旅遊</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- 引入 D3.js -->
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
     
@@ -97,6 +96,13 @@
                 opacity: 1;
             }
         }
+        
+        /* 類別選擇按鈕樣式 */
+        .category-btn.selected {
+            background-color: #4f46e5; /* indigo-600 */
+            color: white;
+            border-color: #4f46e5;
+        }
     </style>
 </head>
 <body class="min-h-screen">
@@ -107,33 +113,32 @@
             <header class="mb-8">
                 <h1 class="text-3xl font-bold text-gray-800 tracking-wider">東京六日輕旅</h1>
                 <p class="text-sm text-gray-400 mt-1">2026.01.11 - 01.16 | 歡迎回來！</p>
-                <!-- 新增倒數計時區塊 -->
-                <div id="countdown-timer" class="hidden mt-3 inline-block bg-rose-100 text-rose-600 px-3 py-1 rounded-full text-xs font-bold tracking-wide">
+                <!-- 倒數計時區塊 -->
+                <div id="countdown-timer" class="mt-3 inline-block bg-rose-100 text-rose-600 px-3 py-1 rounded-full text-xs font-bold tracking-wide hidden">
                     計算中...
                 </div>
             </header>
 
-            <!-- 天氣卡片：調整高度與內距 -->
-            <div id="weather-card" class="app-card p-5 mb-8 bg-gradient-to-br from-indigo-500 to-indigo-600 text-white shadow-xl overflow-hidden relative">
+            <!-- 天氣卡片 -->
+            <div id="weather-card" onclick="window.open(WEATHER_LINK, '_blank')" class="app-card interactive p-6 mb-8 bg-gradient-to-br from-indigo-500 to-indigo-600 text-white shadow-xl overflow-hidden relative">
                 <div id="weather-content" class="relative z-10">
-                    <div class="flex justify-between items-center mb-2 px-1">
-                        <div onclick="window.open(WEATHER_LINK, '_blank')" class="cursor-pointer">
-                            <h2 class="text-2xl font-bold flex items-baseline">
-                                東京 <span class="text-sm font-normal ml-2 opacity-80">未來一週預報</span>
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <p id="weather-location" class="text-xl font-medium mb-1">東京 (未來一週)</p>
+                            <h2 id="weather-temp-range" class="text-2xl font-extrabold flex items-center">
+                                載入中...
                             </h2>
+                            <p class="text-xs opacity-80 mt-1" id="weather-desc-text">正在從 Open-Meteo 抓取資料...</p>
                         </div>
-                        <div class="flex items-center space-x-3 text-xs opacity-90">
-                            <span class="flex items-center"><div class="w-2 h-2 rounded-full bg-white mr-1"></div>溫度</span>
-                            <span class="flex items-center"><div class="w-2 h-2 rounded-sm bg-blue-300 mr-1"></div>降雨機率</span>
-                        </div>
+                        <i id="weather-main-icon" data-lucide="cloud" class="w-12 h-12 text-white/90"></i>
                     </div>
                     
-                    <!-- D3 圖表容器：增加高度以利閱讀 -->
-                    <div id="weather-chart-container" class="w-full h-48"></div>
-                    
-                    <div class="mt-1 pt-2 border-t border-white/20 text-xs flex justify-between cursor-pointer opacity-80 hover:opacity-100 transition-opacity" onclick="window.open(WEATHER_LINK, '_blank')">
-                        <span id="weather-high-low">資料來源：日本氣象廳 (JMA)</span>
-                        <i data-lucide="external-link" class="w-4 h-4"></i>
+                    <!-- D3 Chart Container -->
+                    <div id="weather-chart" class="w-full h-32 mt-2"></div>
+
+                    <div class="mt-2 pt-2 border-t border-white/20 text-xs flex justify-between">
+                        <span class="opacity-90">資料來源：Open-Meteo</span>
+                        <i data-lucide="external-link" class="w-4 h-4 text-white/90"></i>
                     </div>
                 </div>
             </div>
@@ -215,27 +220,21 @@
                 </ul>
             </div>
 
-            <!-- 新增緊急聯絡卡 -->
-            <div class="app-card p-6 mb-8 bg-red-50 border border-red-100">
-                <p class="text-xs font-bold text-red-600 uppercase tracking-wider mb-4 flex items-center">
-                    <i data-lucide="ambulance" class="w-4 h-4 mr-1"></i>
-                    緊急聯絡資訊
-                </p>
-                <div class="grid grid-cols-2 gap-4">
-                    <a href="tel:110" class="flex flex-col items-center justify-center p-3 bg-white rounded-xl shadow-sm border border-red-100 active:scale-95 transition-transform">
-                        <span class="text-2xl font-bold text-red-500">110</span>
-                        <span class="text-xs text-gray-500">日本警察局</span>
+             <!-- 緊急聯絡卡 -->
+             <div class="app-card p-4 mb-8 bg-red-50 border border-red-100 text-center">
+                <p class="text-xs font-bold text-red-500 uppercase tracking-wider mb-3">緊急聯絡資訊</p>
+                <div class="flex justify-around text-sm">
+                    <a href="tel:110" class="flex flex-col items-center text-gray-700">
+                        <span class="font-bold text-lg">110</span>
+                        <span class="text-xs text-gray-400">警察局</span>
                     </a>
-                    <a href="tel:119" class="flex flex-col items-center justify-center p-3 bg-white rounded-xl shadow-sm border border-red-100 active:scale-95 transition-transform">
-                        <span class="text-2xl font-bold text-red-500">119</span>
-                        <span class="text-xs text-gray-500">日本救護/火警</span>
+                    <a href="tel:119" class="flex flex-col items-center text-gray-700">
+                        <span class="font-bold text-lg">119</span>
+                        <span class="text-xs text-gray-400">火警/救護</span>
                     </a>
-                </div>
-                <div class="mt-4 pt-4 border-t border-red-100">
-                    <p class="text-xs text-gray-500 mb-1">台北駐日經濟文化代表處 (急難救助)</p>
-                    <a href="tel:+81-3-3280-7811" class="text-lg font-bold text-gray-700 flex items-center">
-                        <i data-lucide="phone" class="w-4 h-4 mr-2"></i>
-                        03-3280-7811
+                    <a href="tel:+81-3-3280-7111" class="flex flex-col items-center text-gray-700">
+                        <span class="font-bold text-lg">駐日代表</span>
+                        <span class="text-xs text-gray-400">+81-3-3280-7111</span>
                     </a>
                 </div>
             </div>
@@ -250,62 +249,62 @@
             
             <div id="day-tabs-scroll-wrapper" class="overflow-x-auto whitespace-nowrap mb-6 no-scrollbar">
                 <div id="day-tabs-container" class="inline-flex space-x-3 pb-2">
-                    </div>
+                </div>
             </div>
             <div id="timeline-container" class="pb-10"></div>
         </div>
 
-        <!-- 新增記帳頁面 -->
+        <!-- 記帳頁面 -->
         <div id="budget-page" class="page-transition hidden-page">
             <header class="mb-6">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <h1 class="text-3xl font-bold text-gray-800 tracking-wider">旅遊記帳</h1>
-                        <div class="mt-2 flex items-baseline">
-                            <p class="text-sm text-gray-400 mr-2">總支出</p>
-                            <p id="total-expense" class="text-3xl font-bold text-indigo-600">¥0</p>
-                            <p id="total-expense-twd" class="text-sm text-gray-400 ml-2">(約 NT$0)</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- 分享按鈕區塊 -->
-                <div class="mt-4 p-3 bg-indigo-50 border border-indigo-100 rounded-xl flex items-center justify-between">
-                    <div>
-                        <p class="text-xs font-bold text-indigo-700 mb-0.5">與旅伴同步記帳</p>
-                        <p class="text-[10px] text-indigo-500">產生網址連結分享給朋友</p>
-                    </div>
-                    <button onclick="copyShareLink()" class="px-3 py-1.5 bg-indigo-600 text-white text-xs font-bold rounded-lg shadow-sm active:scale-95 transition-transform flex items-center">
-                        <i data-lucide="link" class="w-3 h-3 mr-1.5"></i>
-                        複製分享連結
-                    </button>
-                </div>
+                <h1 class="text-3xl font-bold text-gray-800 tracking-wider">旅遊錢包</h1>
+                <p class="text-sm text-gray-400 mt-1">支出紀錄 (含類別)</p>
             </header>
 
-            <div class="app-card p-6 mb-8 bg-white border border-gray-100">
-                <h3 class="text-sm font-bold text-gray-700 mb-3">新增支出</h3>
-                <div class="space-y-3">
-                    <input type="text" id="expense-title" placeholder="項目名稱 (如：拉麵)" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-500 transition-colors">
-                    <div class="flex space-x-3">
-                        <input type="number" id="expense-amount" placeholder="金額 (日幣)" class="w-2/3 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-500 transition-colors">
-                        <select id="expense-category" class="w-1/3 bg-gray-50 border border-gray-200 rounded-xl px-2 py-2.5 text-sm focus:outline-none focus:border-indigo-500 transition-colors">
-                            <option value="food">飲食</option>
-                            <option value="shopping">購物</option>
-                            <option value="transport">交通</option>
-                            <option value="stay">住宿</option>
-                            <option value="other">其他</option>
-                        </select>
-                    </div>
-                    <button onclick="addExpense()" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl active:scale-[0.98] transition-transform shadow-md hover:bg-indigo-700">
-                        加入記帳
+            <div class="app-card p-6 mb-6 bg-gradient-to-br from-gray-800 to-gray-900 text-white shadow-lg">
+                <div class="flex justify-between items-end mb-2">
+                    <span class="text-gray-400 text-xs uppercase tracking-wider">總支出估算</span>
+                    <button id="share-budget-btn" onclick="copyBudgetLink()" class="text-xs bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-full text-white flex items-center transition-colors">
+                        <i data-lucide="link" class="w-3 h-3 mr-1"></i> 分享
                     </button>
+                </div>
+                <div class="text-4xl font-bold mb-1 tracking-tight">
+                    ¥ <span id="total-jpy">0</span>
+                </div>
+                <div class="text-sm text-gray-400">
+                    ≈ NT$ <span id="total-twd">0</span> (匯率 0.205)
                 </div>
             </div>
 
-            <div class="mb-4">
-                <h3 class="text-sm font-bold text-gray-400 mb-2 uppercase tracking-wider">支出明細</h3>
-                <div id="expense-list" class="space-y-3 pb-10">
-                    <!-- 明細將由 JS 渲染 -->
+            <!-- 新增支出表單 -->
+            <div class="app-card p-5 mb-6 shadow-md">
+                <p class="text-xs font-bold text-gray-500 uppercase mb-3">新增支出</p>
+                
+                <!-- 類別選擇 -->
+                <div class="grid grid-cols-6 gap-2 mb-4" id="category-selector">
+                    <!-- 由 JS 動態生成 -->
+                </div>
+
+                <div class="grid grid-cols-1 gap-3 mb-4">
+                    <div class="flex items-center bg-gray-50 rounded-xl px-3 border border-gray-200 focus-within:border-indigo-500 transition-colors">
+                        <i data-lucide="pen-line" class="w-4 h-4 text-gray-400 mr-2"></i>
+                        <input type="text" id="expense-item" placeholder="項目名稱 (如: 一蘭拉麵)" class="w-full bg-transparent py-3 text-sm focus:outline-none text-gray-700">
+                    </div>
+                    <div class="flex items-center bg-gray-50 rounded-xl px-3 border border-gray-200 focus-within:border-indigo-500 transition-colors">
+                        <span class="text-gray-500 font-bold mr-2">¥</span>
+                        <input type="number" id="expense-amount" placeholder="金額" class="w-full bg-transparent py-3 text-sm focus:outline-none text-gray-700 font-medium">
+                    </div>
+                </div>
+                <button onclick="addExpense()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 rounded-xl active:scale-[0.98] transition-transform flex justify-center items-center shadow-md shadow-indigo-200">
+                    <i data-lucide="plus" class="w-4 h-4 mr-1"></i> 加入紀錄
+                </button>
+            </div>
+
+            <!-- 支出列表 -->
+            <div class="space-y-3 pb-24" id="expense-list">
+                <!-- 動態生成 -->
+                <div class="text-center text-gray-400 text-sm py-10">
+                    尚無支出紀錄
                 </div>
             </div>
         </div>
@@ -313,18 +312,17 @@
 
     <nav class="fixed bottom-0 left-0 right-0 max-w-xl mx-auto z-30 p-4 bg-white shadow-[0_-4px_15px_rgba(0,0,0,0.03)] rounded-t-2xl">
         <div class="flex justify-around">
-            <button id="nav-home" onclick="renderPage('home')" class="flex flex-col items-center p-2 text-gray-800 active-nav-item w-16">
+            <button id="nav-home" onclick="renderPage('home')" class="flex flex-col items-center p-2 text-gray-800 active-nav-item transition-colors">
                 <i data-lucide="house" class="w-5 h-5"></i>
                 <span class="text-xs mt-1 font-medium">主頁</span>
             </button>
-            <button id="nav-timeline" onclick="renderPage('timeline')" class="flex flex-col items-center p-2 text-gray-400 inactive-nav-item w-16">
+            <button id="nav-timeline" onclick="renderPage('timeline')" class="flex flex-col items-center p-2 text-gray-400 inactive-nav-item transition-colors">
                 <i data-lucide="list-checks" class="w-5 h-5"></i>
                 <span class="text-xs mt-1 font-medium">行程</span>
             </button>
-            <!-- 新增記帳導航按鈕 -->
-            <button id="nav-budget" onclick="renderPage('budget')" class="flex flex-col items-center p-2 text-gray-400 inactive-nav-item w-16">
+            <button id="nav-budget" onclick="renderPage('budget')" class="flex flex-col items-center p-2 text-gray-400 inactive-nav-item transition-colors">
                 <i data-lucide="wallet" class="w-5 h-5"></i>
-                <span class="text-xs mt-1 font-medium">記帳</span>
+                <span class="text-xs mt-1 font-medium">錢包</span>
             </button>
         </div>
     </nav>
@@ -338,7 +336,7 @@
             <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6"></div>
             
             <div id="modal-dynamic-body">
-                </div>
+            </div>
 
             <button onclick="closeModal()" class="mt-8 w-full py-3.5 rounded-xl font-bold text-gray-500 bg-gray-100 hover:bg-gray-200 active:scale-[0.99] transition-transform">
                 關閉
@@ -346,27 +344,29 @@
         </div>
     </div>
 
-    <script>
-        // ----------------------------------------------------
-        // Firebase Setup (Required for Canvas Environment)
-        // ----------------------------------------------------
-        // 這些變數由 Canvas 環境提供
-        const __app_id = 'travel-itinerary-app';
-        const __firebase_config = '{}';
-        const __initial_auth_token = '';
-        const WEATHER_LOCATION = "東京"; 
-        
-        // 外部天氣連結 - 連結至日本氣象廳 (JMA) 東京預報 (繁體中文)
-        const WEATHER_LINK = "https://www.data.jma.go.jp/multi/yoho/yoho_detail.html?code=130010&lang=cn_zt";
+    <!-- 匯率按鈕 -->
+    <button onclick="toggleCurrency()" class="fixed bottom-24 right-4 w-12 h-12 bg-gray-800 text-white rounded-full shadow-lg flex items-center justify-center z-40 active:scale-90 transition-transform">
+        <span class="font-bold text-xs">¥/$</span>
+    </button>
 
-        // SHIBUYA SKY 官方圖片 URL
+    <!-- 匯率小工具面板 -->
+    <div id="currency-modal" class="hidden fixed bottom-40 right-4 w-48 bg-white p-4 rounded-xl shadow-2xl z-40 border border-gray-100 transform transition-all origin-bottom-right">
+        <h3 class="text-xs font-bold text-gray-400 mb-2 uppercase">日幣換算 (匯率 0.205)</h3>
+        <input type="number" id="jpy-input" placeholder="輸入日幣" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 mb-2" oninput="calcRate()">
+        <div class="text-right">
+            <span class="text-xs text-gray-400">約 TWD</span>
+            <div id="twd-output" class="text-xl font-bold text-indigo-600">0</div>
+        </div>
+    </div>
+
+    <script>
+        const WEATHER_LOCATION = "東京"; 
+        const WEATHER_LINK = "https://www.data.jma.go.jp/multi/yoho/yoho_detail.html?code=130010&lang=cn_zt";
         const SHIBUYA_SKY_IMAGE = "https://www.shibuya-scramble-square.com/sky/images/share_image.png";
-        
-        // teamLab Planets TOKYO DMM 官方圖片 URL
         const TEAMLAB_PLANETS_IMAGE = "https://imagedelivery.net/b5EBo9Uo-OK6SM09ZTkEZQ/89JNH3JuCgHZcGbACeD2vU/width=3840,quality=80";
 
         // ----------------------------------------------------
-        // 1. 行程資料庫 (Itinerary Data)
+        // 1. 行程資料庫 (Static Itinerary Data)
         // ----------------------------------------------------
         const itineraryData = {
             1: {
@@ -391,17 +391,7 @@
                         hasImage: true, 
                         image: SHIBUYA_SKY_IMAGE 
                     }, 
-                    { 
-                        time: "20:00", 
-                        title: "Check-in Paul House (上野)", 
-                        type: "stay", 
-                        color: "indigo", 
-                        icon: "bed", 
-                        desc: "返回上野，領取行李，辦理 Paul House 入住。", 
-                        note: "第一段住宿開始，共 3 晚。", 
-                        hasImage: false,
-                        address: "Paul House, Ueno (請確認訂房網地址)" // 新增地址欄位範例
-                    }
+                    { time: "20:00", title: "Check-in Paul House (上野)", type: "stay", color: "indigo", icon: "bed", desc: "返回上野，領取行李，辦理 Paul House 入住。", note: "第一段住宿開始，共 3 晚。", hasImage: false }
                 ]
             },
             2: {
@@ -433,17 +423,7 @@
                      { time: "08:30", title: "淺草寺與雷門", type: "sightseeing", color: "red", icon: "camera", desc: "參觀雷門、仲見世通，並參拜淺草寺。", hasImage: true, image: "https://static.gltjp.com/glt/data/article/11000/10068/20230523_002407_ad532d77_w1920.webp" },
                      { time: "11:00", title: "晴空塔 Skytree", type: "sightseeing", color: "sky", icon: "tower-control", desc: "參觀晴空塔及 Solamachi 商場。", hasImage: false },
                      { time: "13:00", title: "午餐：敘敘苑或同級燒肉", type: "food", color: "orange", icon: "flame", desc: "在晴空塔附近享用午餐燒肉。", hasImage: false },
-                     { 
-                        time: "15:00", 
-                        title: "前往東京灣東方飯店", 
-                        type: "stay", 
-                        color: "purple", 
-                        icon: "luggage", 
-                        desc: "從上野搭車前往舞濱，將行李寄放至飯店。", 
-                        note: "第二段住宿開始 (2 晚)，預計 1/16 退房。", 
-                        hasImage: false,
-                        address: "Oriental Hotel Tokyo Bay (千葉県浦安市美浜1-8-2)" // 新增地址
-                     },
+                     { time: "15:00", title: "前往東京灣東方飯店 Check-in", type: "stay", color: "purple", icon: "luggage", desc: "從上野搭車前往舞濱，將行李寄放至飯店。", note: "第二段住宿開始 (2 晚)，預計 1/16 退房。", hasImage: false },
                      { 
                         time: "17:30", 
                         title: "teamLab Planets TOKYO DMM", 
@@ -453,7 +433,7 @@
                         desc: "體驗型數位藝術展，沉浸在光影世界。", 
                         note: "記得穿著輕便服裝，可能會赤腳及接觸水。一般營業時間為 9:00-22:00，最晚入場時間為閉館前 1 小時。請務必依照預購票券上的指定時間入場。", 
                         hasImage: true, 
-                        image: TEAMLAB_PLANETS_IMAGE ,
+                        image: TEAMLAB_PLANETS_IMAGE,
                         mapLink:"https://maps.app.goo.gl/LiZBJrZPB6xcS7m98",
                      } 
                  ]
@@ -494,10 +474,9 @@
         };
 
         // ----------------------------------------------------
-        // 2. 攜帶物品清單資料 (Packing List Data)
+        // 2. 攜帶物品清單資料 (Packing List with LocalStorage)
         // ----------------------------------------------------
-        // 嘗試從 localStorage 讀取資料，如果沒有則使用預設值
-        const defaultPackingList = [
+        let packingListItems = JSON.parse(localStorage.getItem('myTripPackingList')) || [
             { id: 1, text: "護照、機票 (電子檔與紙本)", checked: false, category: "文件" },
             { id: 2, text: "日幣現金與信用卡", checked: false, category: "文件" },
             { id: 3, text: "手機、充電器、行動電源", checked: false, category: "電子" },
@@ -508,327 +487,12 @@
             { id: 8, text: "常用藥品 (胃藥、感冒藥)", checked: false, category: "雜項" },
         ];
 
-        let packingListItems = JSON.parse(localStorage.getItem('trip_packing_list')) || defaultPackingList;
-
-        // ----------------------------------------------------
-        // 3. 記帳功能資料與函式 (Budget Functions)
-        // ----------------------------------------------------
-        let expenses = JSON.parse(localStorage.getItem('trip_expenses')) || [];
-
-        function addExpense() {
-            const titleInput = document.getElementById('expense-title');
-            const amountInput = document.getElementById('expense-amount');
-            const categoryInput = document.getElementById('expense-category');
-
-            const title = titleInput.value.trim();
-            const amount = parseInt(amountInput.value);
-            const category = categoryInput.value;
-
-            if (!title || isNaN(amount) || amount <= 0) {
-                alert('請輸入正確的項目名稱與金額');
-                return;
-            }
-
-            const expense = {
-                id: Date.now(),
-                title,
-                amount,
-                category,
-                date: new Date().toLocaleDateString()
-            };
-
-            expenses.unshift(expense); // 新增到最前面
-            localStorage.setItem('trip_expenses', JSON.stringify(expenses));
-            
-            // 清空輸入
-            titleInput.value = '';
-            amountInput.value = '';
-            
-            renderBudgetPage();
-        }
-
-        function deleteExpense(id) {
-            if(confirm('確定要刪除這筆紀錄嗎？')) {
-                expenses = expenses.filter(e => e.id !== id);
-                localStorage.setItem('trip_expenses', JSON.stringify(expenses));
-                renderBudgetPage();
-            }
-        }
-
-        function renderBudgetPage() {
-            const listContainer = document.getElementById('expense-list');
-            const totalEl = document.getElementById('total-expense');
-            const totalTwdEl = document.getElementById('total-expense-twd');
-            
-            listContainer.innerHTML = '';
-            
-            let total = 0;
-            const categoryIcons = {
-                'food': 'utensils',
-                'shopping': 'shopping-bag',
-                'transport': 'train',
-                'stay': 'bed',
-                'other': 'circle-dollar-sign'
-            };
-
-            const categoryColors = {
-                'food': 'orange',
-                'shopping': 'pink',
-                'transport': 'blue',
-                'stay': 'indigo',
-                'other': 'gray'
-            };
-
-            expenses.forEach(item => {
-                total += item.amount;
-                const icon = categoryIcons[item.category] || 'circle-dollar-sign';
-                const color = categoryColors[item.category] || 'gray';
-                
-                const html = `
-                    <div class="flex items-center justify-between p-4 bg-white rounded-xl shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05)] border border-gray-50">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-10 h-10 rounded-full bg-${color}-50 flex items-center justify-center text-${color}-500">
-                                <i data-lucide="${icon}" class="w-5 h-5"></i>
-                            </div>
-                            <div>
-                                <h4 class="font-bold text-gray-800 text-sm">${item.title}</h4>
-                                <p class="text-xs text-gray-400">${item.date}</p>
-                            </div>
-                        </div>
-                        <div class="flex items-center space-x-3">
-                            <span class="font-bold text-gray-700">¥${item.amount.toLocaleString()}</span>
-                            <button onclick="deleteExpense(${item.id})" class="text-gray-300 hover:text-red-400 p-1">
-                                <i data-lucide="trash-2" class="w-4 h-4"></i>
-                            </button>
-                        </div>
-                    </div>
-                `;
-                listContainer.insertAdjacentHTML('beforeend', html);
-            });
-
-            if (expenses.length === 0) {
-                listContainer.innerHTML = '<p class="text-center text-gray-400 text-sm py-8">目前還沒有記帳紀錄</p>';
-            }
-
-            totalEl.innerText = `¥${total.toLocaleString()}`;
-            // 更新匯率為 0.205
-            const twd = Math.round(total * 0.205);
-            totalTwdEl.innerText = `(約 NT$${twd.toLocaleString()})`;
-
-            window.lucide.createIcons();
-        }
-
-        // 新增：產生並複製記帳分享連結
-        function copyShareLink() {
-            // 將 expenses 陣列轉為字串 -> 編碼為 Base64 (處理中文編碼問題)
-            try {
-                const jsonStr = JSON.stringify(expenses);
-                const base64Str = btoa(unescape(encodeURIComponent(jsonStr)));
-                
-                // 取得當前網址並附加參數
-                const url = new URL(window.location.href);
-                url.searchParams.set('budget_data', base64Str);
-                
-                // 複製到剪貼簿
-                navigator.clipboard.writeText(url.toString()).then(() => {
-                    alert('連結已複製！請傳給朋友，他們打開後即可載入你的記帳資料。');
-                }).catch(err => {
-                    console.error('複製失敗', err);
-                    alert('複製失敗，請手動複製網址');
-                });
-            } catch (e) {
-                console.error('編碼錯誤', e);
-                alert('資料過大或錯誤，無法建立分享連結');
-            }
-        }
-
-        // ----------------------------------------------------
-        // 4. D3.js 天氣圖表功能 (Weather Chart) - 重新設計版 (防重疊)
-        // ----------------------------------------------------
-        function renderWeatherChart() {
-            // 清除舊圖表
-            d3.select("#weather-chart-container").html("");
-
-            // 模擬東京 1/11 (週日) - 1/16 (週五) 天氣數據
-            const data = [
-                { date: '1/11', day: '週日', temp: 8, rain: 10 },
-                { date: '1/12', day: '週一', temp: 7, rain: 20 },
-                { date: '1/13', day: '週二', temp: 5, rain: 0 },
-                { date: '1/14', day: '週三', temp: 4, rain: 40 },
-                { date: '1/15', day: '週四', temp: 6, rain: 10 },
-                { date: '1/16', day: '週五', temp: 9, rain: 0 }
-            ];
-
-            const container = document.getElementById("weather-chart-container");
-            const width = container.offsetWidth;
-            const height = container.offsetHeight;
-            const margin = { top: 30, right: 20, bottom: 40, left: 20 };
-
-            const svg = d3.select("#weather-chart-container")
-                .append("svg")
-                .attr("width", width)
-                .attr("height", height);
-            
-            // 定義漸層 (用於溫度區域填充)
-            const defs = svg.append("defs");
-            const gradient = defs.append("linearGradient")
-                .attr("id", "temp-gradient")
-                .attr("x1", "0%")
-                .attr("y1", "0%")
-                .attr("x2", "0%")
-                .attr("y2", "100%");
-            
-            gradient.append("stop")
-                .attr("offset", "0%")
-                .attr("stop-color", "white")
-                .attr("stop-opacity", 0.5);
-            
-            gradient.append("stop")
-                .attr("offset", "100%")
-                .attr("stop-color", "white")
-                .attr("stop-opacity", 0);
-
-            const innerWidth = width - margin.left - margin.right;
-            const innerHeight = height - margin.top - margin.bottom;
-
-            const g = svg.append("g")
-                .attr("transform", `translate(${margin.left},${margin.top})`);
-
-            // X 軸比例尺
-            const x = d3.scaleBand()
-                .domain(data.map(d => d.date))
-                .range([0, innerWidth])
-                .padding(0.4);
-
-            // *** 關鍵修改：將高度空間分為兩部分，避免重疊 ***
-            
-            // Y 軸比例尺 (溫度) - 只使用上方 65% 的空間
-            const yTemp = d3.scaleLinear()
-                .domain([0, 15]) 
-                .range([innerHeight * 0.65, 0]);
-
-            // Y 軸比例尺 (降雨機率) - 只使用下方 25% 的空間 (保留中間 10% 緩衝)
-            const yRain = d3.scaleLinear()
-                .domain([0, 100])
-                .range([innerHeight, innerHeight * 0.75]); 
-
-            // 1. 繪製降雨機率 (長條圖)
-            g.selectAll(".bar-rain")
-                .data(data)
-                .enter().append("rect")
-                .attr("class", "bar-rain")
-                .attr("x", d => x(d.date))
-                .attr("width", x.bandwidth())
-                .attr("y", d => yRain(d.rain))
-                .attr("height", d => innerHeight - yRain(d.rain))
-                .attr("fill", "#93c5fd")
-                .attr("opacity", 0.9)
-                .attr("rx", 3);
-
-            // 降雨文字 (如果有降雨機率才顯示) - 顯示在長條圖上方，但限制位置不會太高
-            g.selectAll(".text-rain")
-                .data(data)
-                .enter().append("text")
-                .filter(d => d.rain > 0)
-                .attr("x", d => x(d.date) + x.bandwidth() / 2)
-                .attr("y", d => yRain(d.rain) - 6) // 文字稍微再往上一點點
-                .attr("text-anchor", "middle")
-                .attr("fill", "#bfdbfe")
-                .attr("font-size", "10px")
-                .attr("font-weight", "bold")
-                .text(d => `${d.rain}%`);
-
-            // 2. 繪製溫度 (區域圖 + 折線圖)
-            const area = d3.area()
-                .x(d => x(d.date) + x.bandwidth() / 2)
-                .y0(innerHeight * 0.65) // 區域填充到底部為止 (Temp 的底部)
-                .y1(d => yTemp(d.temp))
-                .curve(d3.curveMonotoneX);
-
-            const line = d3.line()
-                .x(d => x(d.date) + x.bandwidth() / 2)
-                .y(d => yTemp(d.temp))
-                .curve(d3.curveMonotoneX);
-
-            // 區域填充
-            g.append("path")
-                .datum(data)
-                .attr("fill", "url(#temp-gradient)")
-                .attr("d", area);
-
-            // 線條
-            g.append("path")
-                .datum(data)
-                .attr("fill", "none")
-                .attr("stroke", "white")
-                .attr("stroke-width", 3)
-                .attr("d", line)
-                .attr("filter", "drop-shadow(0 2px 2px rgba(0,0,0,0.1))"); 
-
-            // 溫度點
-            g.selectAll(".dot")
-                .data(data)
-                .enter().append("circle")
-                .attr("cx", d => x(d.date) + x.bandwidth() / 2)
-                .attr("cy", d => yTemp(d.temp))
-                .attr("r", 4)
-                .attr("fill", "white")
-                .attr("stroke", "rgba(79, 70, 229, 0.5)") 
-                .attr("stroke-width", 1);
-
-            // 溫度數值
-            g.selectAll(".text-temp")
-                .data(data)
-                .enter().append("text")
-                .attr("x", d => x(d.date) + x.bandwidth() / 2)
-                .attr("y", d => yTemp(d.temp) - 10)
-                .attr("text-anchor", "middle")
-                .attr("fill", "white")
-                .attr("font-size", "14px")
-                .attr("font-weight", "bold")
-                .style("text-shadow", "0 1px 2px rgba(0,0,0,0.2)")
-                .text(d => `${d.temp}°`);
-
-            // 3. X 軸標籤 (日期 + 星期)
-            const xAxisGroup = g.append("g")
-                .attr("transform", `translate(0, ${innerHeight + 15})`);
-
-            // 日期 (1/11)
-            xAxisGroup.selectAll(".text-date")
-                .data(data)
-                .enter().append("text")
-                .attr("x", d => x(d.date) + x.bandwidth() / 2)
-                .attr("y", 0)
-                .attr("text-anchor", "middle")
-                .attr("fill", "rgba(255,255,255,0.9)")
-                .attr("font-size", "11px")
-                .attr("font-weight", "500")
-                .text(d => d.date);
-            
-            // 星期 (週日)
-            xAxisGroup.selectAll(".text-day")
-                .data(data)
-                .enter().append("text")
-                .attr("x", d => x(d.date) + x.bandwidth() / 2)
-                .attr("y", 14)
-                .attr("text-anchor", "middle")
-                .attr("fill", "rgba(255,255,255,0.6)")
-                .attr("font-size", "10px")
-                .text(d => d.day);
-        }
-
-        // ----------------------------------------------------
-        // 5. 核心功能函式 (Core Functions)
-        // ----------------------------------------------------
-
-        // A. 物品清單功能
         function togglePackingItem(id) {
             const item = packingListItems.find(item => item.id === id);
             if (item) {
                 item.checked = !item.checked;
-                // 保存更新後的清單到 localStorage
-                localStorage.setItem('trip_packing_list', JSON.stringify(packingListItems));
-                renderPackingList(); // 重新渲染清單
+                localStorage.setItem('myTripPackingList', JSON.stringify(packingListItems));
+                renderPackingList();
             }
         }
 
@@ -863,18 +527,370 @@
             window.lucide.createIcons();
         }
 
-        // G. 動態渲染天數按鈕
+        // ----------------------------------------------------
+        // 3. 記帳功能 (URL Base64 Sharing & Categories)
+        // ----------------------------------------------------
+        let expenses = [];
+        const RATE = 0.205;
+        let selectedCategory = 'food'; // 預設類別
+
+        // 類別設定
+        const expenseCategories = {
+            food: { label: "飲食", icon: "utensils", color: "orange" },
+            transport: { label: "交通", icon: "train", color: "blue" },
+            shopping: { label: "購物", icon: "shopping-bag", color: "pink" },
+            stay: { label: "住宿", icon: "bed", color: "indigo" },
+            ticket: { label: "娛樂", icon: "ticket", color: "purple" },
+            other: { label: "其他", icon: "circle-ellipsis", color: "gray" }
+        };
+
+        function renderCategorySelector() {
+            const container = document.getElementById('category-selector');
+            container.innerHTML = '';
+            
+            Object.keys(expenseCategories).forEach(key => {
+                const cat = expenseCategories[key];
+                const isSelected = key === selectedCategory;
+                const btnHtml = `
+                    <button onclick="selectCategory('${key}')" 
+                            class="category-btn flex flex-col items-center justify-center p-2 rounded-xl border ${isSelected ? `bg-${cat.color}-100 border-${cat.color}-500 text-${cat.color}-700` : 'bg-gray-50 border-gray-200 text-gray-500 hover:bg-gray-100'} transition-all active:scale-95 h-16 w-full">
+                        <i data-lucide="${cat.icon}" class="w-5 h-5 mb-1"></i>
+                        <span class="text-[10px] font-bold">${cat.label}</span>
+                    </button>
+                `;
+                container.insertAdjacentHTML('beforeend', btnHtml);
+            });
+            window.lucide.createIcons();
+        }
+
+        function selectCategory(key) {
+            selectedCategory = key;
+            renderCategorySelector();
+        }
+
+        // 從 URL 載入資料
+        function loadExpensesFromURL() {
+            const hash = window.location.hash.substring(1); 
+            if (hash) {
+                try {
+                    const decoded = decodeURIComponent(escape(atob(hash)));
+                    const parsed = JSON.parse(decoded);
+                    // 為了相容舊版資料，如果沒有 category 欄位，預設為 'other'
+                    expenses = parsed.map(e => ({...e, category: e.category || 'other'}));
+                } catch (e) {
+                    console.error("URL 解析失敗", e);
+                }
+            }
+            renderBudget();
+            renderCategorySelector();
+        }
+
+        function updateURL() {
+            if (expenses.length === 0) {
+                history.replaceState(null, null, ' ');
+                return;
+            }
+            const jsonStr = JSON.stringify(expenses);
+            const encoded = btoa(unescape(encodeURIComponent(jsonStr)));
+            history.replaceState(null, null, '#' + encoded);
+        }
+
+        function addExpense() {
+            const itemInput = document.getElementById('expense-item');
+            const amountInput = document.getElementById('expense-amount');
+            
+            const item = itemInput.value.trim();
+            const amount = parseInt(amountInput.value);
+
+            if (item && amount) {
+                expenses.push({ 
+                    id: Date.now(), 
+                    item, 
+                    amount,
+                    category: selectedCategory 
+                });
+                itemInput.value = '';
+                amountInput.value = '';
+                updateURL(); 
+                renderBudget();
+            }
+        }
+
+        function deleteExpense(id) {
+            expenses = expenses.filter(e => e.id !== id);
+            updateURL(); 
+            renderBudget();
+        }
+
+        function renderBudget() {
+            const list = document.getElementById('expense-list');
+            list.innerHTML = '';
+            
+            if (expenses.length === 0) {
+                list.innerHTML = `<div class="text-center text-gray-400 text-sm py-10 flex flex-col items-center">
+                    <i data-lucide="piggy-bank" class="w-12 h-12 text-gray-200 mb-2"></i>
+                    尚無支出紀錄
+                </div>`;
+                document.getElementById('total-jpy').innerText = '0';
+                document.getElementById('total-twd').innerText = '0';
+                window.lucide.createIcons();
+                return;
+            }
+
+            let totalJPY = 0;
+
+            expenses.slice().reverse().forEach(exp => {
+                totalJPY += exp.amount;
+                const cat = expenseCategories[exp.category || 'other'];
+                const color = cat ? cat.color : 'gray';
+                const icon = cat ? cat.icon : 'circle-ellipsis';
+                
+                list.insertAdjacentHTML('beforeend', `
+                    <div class="flex justify-between items-center bg-white p-4 rounded-2xl border border-gray-100 shadow-[0_2px_8px_rgba(0,0,0,0.03)] animate-fade-in mb-3">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 rounded-full bg-${color}-100 flex items-center justify-center mr-3 text-${color}-600">
+                                <i data-lucide="${icon}" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <div class="font-bold text-gray-800 text-sm">${exp.item}</div>
+                                <div class="text-[10px] text-gray-400 mt-0.5 bg-gray-50 inline-block px-1.5 py-0.5 rounded border border-gray-100">
+                                    ${cat ? cat.label : '其他'}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="font-bold text-gray-800">¥ ${exp.amount.toLocaleString()}</div>
+                            <div class="text-xs text-indigo-500 font-medium">NT$ ${Math.round(exp.amount * RATE).toLocaleString()}</div>
+                            <button onclick="deleteExpense(${exp.id})" class="text-gray-300 hover:text-red-400 mt-1">
+                                <span class="text-[10px]">刪除</span>
+                            </button>
+                        </div>
+                    </div>
+                `);
+            });
+
+            document.getElementById('total-jpy').innerText = totalJPY.toLocaleString();
+            document.getElementById('total-twd').innerText = Math.round(totalJPY * RATE).toLocaleString();
+            window.lucide.createIcons();
+        }
+
+        function copyBudgetLink() {
+            const url = window.location.href;
+            if (expenses.length === 0) {
+                alert("目前沒有支出紀錄，無法分享。");
+                return;
+            }
+            navigator.clipboard.writeText(url).then(() => {
+                const btn = document.getElementById('share-budget-btn');
+                const originalContent = btn.innerHTML;
+                btn.innerHTML = `<i data-lucide="check" class="w-3 h-3 mr-1"></i> 已複製`;
+                btn.classList.add('bg-green-500', 'text-white');
+                btn.classList.remove('bg-white/20');
+                
+                setTimeout(() => {
+                    btn.innerHTML = originalContent;
+                    btn.classList.remove('bg-green-500', 'text-white');
+                    btn.classList.add('bg-white/20');
+                    window.lucide.createIcons();
+                }, 2000);
+            });
+        }
+
+        // ----------------------------------------------------
+        // 4. 天氣圖表 (D3.js + Open-Meteo API)
+        // ----------------------------------------------------
+        
+        async function fetchWeather() {
+            // 東京座標
+            const lat = 35.6895;
+            const lon = 139.6917;
+            const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=Asia%2FTokyo`;
+
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('Weather API Error');
+                const data = await response.json();
+                
+                // 處理資料
+                const processedData = data.daily.time.map((dateStr, index) => {
+                    const date = new Date(dateStr);
+                    const dayName = ["週日", "週一", "週二", "週三", "週四", "週五", "週六"][date.getDay()];
+                    const monthDay = `${date.getMonth() + 1}/${date.getDate()}`;
+                    
+                    return {
+                        day: dayName,
+                        label: monthDay,
+                        tempMax: Math.round(data.daily.temperature_2m_max[index]),
+                        tempMin: Math.round(data.daily.temperature_2m_min[index]),
+                        temp: Math.round(data.daily.temperature_2m_max[index]), // 用最高溫畫線
+                        rain: data.daily.precipitation_probability_max[index],
+                        code: data.daily.weather_code[index]
+                    };
+                }).slice(0, 7); // 取未來 7 天
+
+                updateWeatherUI(processedData);
+                renderWeatherChart(processedData);
+
+            } catch (error) {
+                console.error("Fetch Weather Failed", error);
+                document.getElementById('weather-desc-text').innerText = "無法載入即時天氣，請檢查網路。";
+            }
+        }
+
+        function updateWeatherUI(data) {
+            // 更新卡片上的摘要文字
+            const today = data[0];
+            document.getElementById('weather-temp-range').innerText = `${today.tempMin}°C - ${today.tempMax}°C`;
+            document.getElementById('weather-desc-text').innerText = `今天 (${today.day}) 降雨機率 ${today.rain}%`;
+            
+            // 根據 WMO Code 更新圖示 (簡易版對照)
+            const code = today.code;
+            let icon = 'cloud';
+            if (code <= 3) icon = 'sun'; // 晴朗/多雲
+            else if (code <= 48) icon = 'cloud-fog'; // 霧
+            else if (code <= 67) icon = 'cloud-rain'; // 雨
+            else if (code <= 77) icon = 'snowflake'; // 雪
+            else if (code <= 82) icon = 'cloud-drizzle'; // 陣雨
+            else if (code <= 99) icon = 'cloud-lightning'; // 雷雨
+            
+            // 重新渲染 Lucide icon
+            const iconEl = document.getElementById('weather-main-icon');
+            iconEl.setAttribute('data-lucide', icon);
+            window.lucide.createIcons();
+        }
+
+        function renderWeatherChart(data) {
+            const container = document.getElementById('weather-chart');
+            if (!container) return;
+            container.innerHTML = ''; 
+
+            const margin = { top: 20, right: 10, bottom: 20, left: 10 };
+            const width = container.offsetWidth - margin.left - margin.right;
+            const height = container.offsetHeight - margin.top - margin.bottom;
+
+            const svg = d3.select("#weather-chart")
+                .append("svg")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+                .append("g")
+                .attr("transform", `translate(${margin.left},${margin.top})`);
+
+            const x = d3.scaleBand()
+                .range([0, width])
+                .domain(data.map(d => d.day))
+                .padding(0.3);
+
+            // 溫度 Y 軸 (上半部)
+            const maxTemp = d3.max(data, d => d.temp) + 2;
+            const minTemp = d3.min(data, d => d.temp) - 2;
+            const yTemp = d3.scaleLinear()
+                .domain([minTemp, maxTemp])
+                .range([height * 0.6, 0]);
+
+            // 降雨 Y 軸 (下半部)
+            const yRain = d3.scaleLinear()
+                .domain([0, 100])
+                .range([height * 0.7, height]);
+
+            // 1. 繪製降雨長條圖
+            svg.selectAll(".bar")
+                .data(data)
+                .enter().append("rect")
+                .attr("class", "bar")
+                .attr("x", d => x(d.day))
+                .attr("width", x.bandwidth())
+                .attr("y", height * 0.7)
+                .attr("height", 0)
+                .attr("fill", "rgba(255, 255, 255, 0.3)")
+                .attr("rx", 3)
+                .transition()
+                .duration(800)
+                .attr("y", d => yRain(0))
+                .attr("height", d => yRain(d.rain) - yRain(0));
+
+            // 降雨文字
+            svg.selectAll(".rain-text")
+                .data(data)
+                .enter().append("text")
+                .filter(d => d.rain > 0)
+                .attr("x", d => x(d.day) + x.bandwidth() / 2)
+                .attr("y", d => yRain(d.rain) + 12)
+                .attr("text-anchor", "middle")
+                .attr("fill", "rgba(255,255,255,0.7)")
+                .attr("font-size", "10px")
+                .text(d => d.rain + "%");
+
+            // 2. 繪製溫度折線圖
+            const line = d3.line()
+                .x(d => x(d.day) + x.bandwidth() / 2)
+                .y(d => yTemp(d.temp))
+                .curve(d3.curveMonotoneX);
+
+            const area = d3.area()
+                .x(d => x(d.day) + x.bandwidth() / 2)
+                .y0(height * 0.6)
+                .y1(d => yTemp(d.temp))
+                .curve(d3.curveMonotoneX);
+
+            svg.append("path")
+                .datum(data)
+                .attr("fill", "rgba(255, 255, 255, 0.1)")
+                .attr("d", area);
+
+            svg.append("path")
+                .datum(data)
+                .attr("fill", "none")
+                .attr("stroke", "#fff")
+                .attr("stroke-width", 2)
+                .attr("d", line);
+
+            // 繪製溫度點
+            svg.selectAll(".dot")
+                .data(data)
+                .enter().append("circle")
+                .attr("class", "dot")
+                .attr("cx", d => x(d.day) + x.bandwidth() / 2)
+                .attr("cy", d => yTemp(d.temp))
+                .attr("r", 3)
+                .attr("fill", "#fff");
+
+            // 溫度文字
+            svg.selectAll(".temp-text")
+                .data(data)
+                .enter().append("text")
+                .attr("x", d => x(d.day) + x.bandwidth() / 2)
+                .attr("y", d => yTemp(d.temp) - 8)
+                .attr("text-anchor", "middle")
+                .attr("fill", "#fff")
+                .attr("font-weight", "bold")
+                .attr("font-size", "12px")
+                .text(d => d.temp + "°");
+
+            // 3. X 軸標籤 (日期)
+            svg.selectAll(".label")
+                .data(data)
+                .enter().append("text")
+                .attr("x", d => x(d.day) + x.bandwidth() / 2)
+                .attr("y", height + 15)
+                .attr("text-anchor", "middle")
+                .attr("fill", "rgba(255,255,255,0.9)")
+                .attr("font-size", "11px")
+                .text(d => d.day);
+        }
+
+        // ----------------------------------------------------
+        // 5. 核心功能函式
+        // ----------------------------------------------------
+
         function renderDayTabs() {
             const container = document.getElementById('day-tabs-container');
             if (!container) return; 
 
             container.innerHTML = '';
             
-            // 根據 itineraryData 的鍵 (1, 2, 3...) 獲取總天數
             const totalDays = Object.keys(itineraryData).length;
             
             for (let day = 1; day <= totalDays; day++) {
-                // 預設 Day 1 為活躍樣式，其餘為非活躍樣式
                 const activeClasses = 'bg-gray-800 text-white';
                 const inactiveClasses = 'bg-white text-gray-400 border border-gray-100';
                 const initialClasses = day === 1 ? activeClasses : inactiveClasses;
@@ -891,7 +907,6 @@
         }
 
 
-        // B. 行程時間軸渲染 (已新增天數按鈕自動置中捲動功能)
         function renderTimeline(day) {
             const container = document.getElementById('timeline-container');
             container.innerHTML = '';
@@ -902,30 +917,23 @@
                 return;
             }
 
-            // 1. 更新 Tab 樣式邏輯
             document.querySelectorAll('.day-tab').forEach(tab => { 
-                // 移除活躍樣式
                 tab.classList.remove('bg-gray-800', 'text-white');
-                // 新增非活躍樣式 (包括 border 以保持非選中狀態的一致性)
                 tab.classList.add('bg-white', 'text-gray-400', 'border', 'border-gray-100');
             });
             
-            // 針對當前選中的 Tab，移除非活躍樣式，新增活躍樣式
             const activeTab = document.getElementById(`tab-${day}`);
             if (activeTab) {
                 activeTab.classList.remove('bg-white', 'text-gray-400', 'border', 'border-gray-100');
                 activeTab.classList.add('bg-gray-800', 'text-white');
 
-                // 2. *** 執行天數按鈕自動居中捲動邏輯 ***
                 const scrollWrapper = document.getElementById('day-tabs-scroll-wrapper');
                 if (scrollWrapper) {
-                    // 計算目標捲動位置以將按鈕置中
                     const targetScroll = 
                         activeTab.offsetLeft + 
                         (activeTab.offsetWidth / 2) - 
                         (scrollWrapper.offsetWidth / 2);
                     
-                    // 執行平滑捲動
                     scrollWrapper.scrollTo({
                         left: targetScroll,
                         behavior: 'smooth'
@@ -934,7 +942,6 @@
             }
             
 
-            // 3. 渲染日期和主題
             container.insertAdjacentHTML('beforeend', `
                 <h2 class="text-2xl font-bold text-gray-800 mb-2 px-2 text-center animate-slide-up">
                     Day ${day}: ${dayData.date}
@@ -944,7 +951,6 @@
                 </p>
             `);
 
-            // 4. 渲染時間軸項目
             dayData.items.forEach((item, index) => {
                 const isLast = index === dayData.items.length - 1;
                 const itemHtml = `
@@ -974,37 +980,29 @@
                 container.insertAdjacentHTML('beforeend', itemHtml);
             });
 
-            // 5. 切換日期後，將頁面捲動到最頂端
-            window.scrollTo({
-                top: 0,
-                behavior: 'smooth' // 平滑捲動
-            });
-            
-            // 6. 重新渲染 Lucide 圖標
+            window.scrollTo({ top: 0, behavior: 'smooth' });
             window.lucide.createIcons();
         }
 
-        // C. 顯示 Modal 詳情
         function showDetailModal(day, index) {
             const item = itineraryData[day].items[index];
             const modalBody = document.getElementById('modal-dynamic-body');
             
-            let actionButtons = '';
-            
-            // 1. 導航按鈕 (已移除複製地址按鈕)
+            let mapButton = '';
+            // 移除 "導航至此地" 以外的文字按鈕，保持介面簡潔
             if (item.mapLink) {
-                actionButtons += `<a href="${item.mapLink}" target="_blank" class="w-full py-3.5 rounded-xl font-bold text-white bg-blue-500 hover:bg-blue-600 active:scale-[0.99] transition-transform flex items-center justify-center mt-4">
+                mapButton = `<a href="${item.mapLink}" target="_blank" class="w-full py-3.5 rounded-xl font-bold text-white bg-blue-500 hover:bg-blue-600 active:scale-[0.99] transition-transform flex items-center justify-center mt-4">
                                 <i data-lucide="map-pin" class="w-5 h-5 mr-2"></i>
                                 導航至此地
                              </a>`;
             } else if (item.title.includes('飯店') || item.title.includes('House')) {
                 const accommodationMapLink = (item.title.includes('東京灣東方飯店')) 
-                    ? 'https://maps.app.goo.gl/YYsdyzutBd9xgjSD8'
+                    ? 'https://maps.app.goo.gl/YYsdyzutBd9xgjSD8' 
                     : (item.title.includes('Paul House'))
                     ? 'https://maps.app.goo.gl/pT3x1xYM5SuEb5my6'
                     : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.title)}`;
 
-                actionButtons += `<a href="${accommodationMapLink}" target="_blank" class="w-full py-3.5 rounded-xl font-bold text-white bg-blue-500 hover:bg-blue-600 active:scale-[0.99] transition-transform flex items-center justify-center mt-4">
+                mapButton = `<a href="${accommodationMapLink}" target="_blank" class="w-full py-3.5 rounded-xl font-bold text-white bg-blue-500 hover:bg-blue-600 active:scale-[0.99] transition-transform flex items-center justify-center mt-4">
                                 <i data-lucide="map-pin" class="w-5 h-5 mr-2"></i>
                                 導航至此地
                              </a>`;
@@ -1017,7 +1015,6 @@
                     </div>
                     <p class="text-xs font-medium text-${item.color}-600 uppercase tracking-wider">${itineraryData[day].date}</p>
                     <h2 class="text-2xl font-extrabold text-gray-800 mt-1">${item.title}</h2>
-                    ${item.address ? `<p class="text-sm text-gray-500 mt-1">${item.address}</p>` : ''}
                 </div>
 
                 ${item.hasImage ? `<img src="${item.image}" alt="${item.title}" onerror="this.onerror=null; this.src='https://placehold.co/600x300/e5e7eb/4b5563?text=圖片載入失敗'" class="w-full h-48 object-cover rounded-xl mb-6 shadow-lg" />` : ''}
@@ -1039,28 +1036,23 @@
                         </div>
                     ` : ''}
                 </div>
-                ${actionButtons}
+                ${mapButton}
             `;
 
-            // 顯示 Modal
             document.body.classList.add('modal-active');
             window.lucide.createIcons();
         }
 
-        // D. 關閉 Modal
         function closeModal() {
             document.body.classList.remove('modal-active');
         }
 
-        // E. 頁面切換邏輯
         function renderPage(pageId) {
             const pages = ['home', 'timeline', 'budget'];
             const navItems = ['nav-home', 'nav-timeline', 'nav-budget'];
 
             pages.forEach(id => {
                 const pageElement = document.getElementById(`${id}-page`);
-                if(!pageElement) return;
-
                 if (id === pageId) {
                     pageElement.classList.remove('hidden-page');
                     pageElement.classList.add('active-page', 'animate-fade-in');
@@ -1072,8 +1064,6 @@
 
             navItems.forEach(id => {
                 const navElement = document.getElementById(id);
-                if(!navElement) return;
-
                 if (id.includes(pageId)) {
                     navElement.classList.remove('text-gray-400', 'inactive-nav-item');
                     navElement.classList.add('text-gray-800', 'active-nav-item');
@@ -1083,111 +1073,66 @@
                 }
             });
 
-            // 如果切換到行程頁面，確保渲染 Day 1
             if (pageId === 'timeline') {
                 renderTimeline(1);
-            }
-            
-            // 如果切換到記帳頁面，渲染記帳列表
-            if (pageId === 'budget') {
-                renderBudgetPage();
-            }
-
-            // 如果回到主頁，重新渲染天氣圖表 (以防寬度計算錯誤)
-            if (pageId === 'home') {
-                setTimeout(renderWeatherChart, 100);
+            } else if (pageId === 'budget') {
+                renderCategorySelector();
+                renderBudget();
+            } else if (pageId === 'home') {
+                // 如果已有天氣資料則重繪，否則抓取
+                fetchWeather();
             }
         }
 
-        // 倒數計時器邏輯
         function initCountdown() {
             const targetDate = new Date("2026-01-11T00:00:00").getTime();
             const now = new Date().getTime();
             const distance = targetDate - now;
 
             const el = document.getElementById('countdown-timer');
-            if(!el) return;
-
-            el.classList.remove('hidden');
-
+            
             if (distance < 0) {
-                // 檢查旅程是否結束 (假設 1/16 結束)
-                const endDate = new Date("2026-01-16T23:59:59").getTime();
-                if (now > endDate) {
-                    el.className = "mt-3 inline-block bg-gray-100 text-gray-500 px-3 py-1 rounded-full text-xs font-bold tracking-wide";
-                    el.innerText = "旅程已結束";
-                } else {
-                    el.className = "mt-3 inline-block bg-green-100 text-green-600 px-3 py-1 rounded-full text-xs font-bold tracking-wide";
-                    el.innerText = "旅程進行中 ✈️";
-                }
+                el.classList.remove('hidden');
+                el.className = "mt-3 inline-block bg-green-100 text-green-600 px-3 py-1 rounded-full text-xs font-bold tracking-wide";
+                el.innerText = "旅程進行中 / 已結束";
                 return;
             }
 
             const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            el.classList.remove('hidden');
             el.innerText = `距離出發還有 ${days} 天`;
         }
 
-        // 新增：處理 URL 中的記帳分享資料
-        function loadSharedBudget() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const sharedData = urlParams.get('budget_data');
-            
-            if (sharedData) {
-                try {
-                    // 解碼流程：Base64 -> String (UTF8) -> JSON Object
-                    const jsonStr = decodeURIComponent(escape(atob(sharedData)));
-                    const sharedExpenses = JSON.parse(jsonStr);
-                    
-                    if (Array.isArray(sharedExpenses) && sharedExpenses.length > 0) {
-                        if(confirm('偵測到分享的記帳資料，是否要載入並覆蓋目前的紀錄？')) {
-                            expenses = sharedExpenses;
-                            localStorage.setItem('trip_expenses', JSON.stringify(expenses));
-                            // 清除 URL 參數避免重複詢問，保持網址乾淨
-                            const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
-                            window.history.pushState({path:newUrl},'',newUrl);
-                            alert('記帳資料已成功載入！');
-                        }
-                    }
-                } catch (e) {
-                    console.error('載入分享資料失敗', e);
-                    alert('連結無效或資料格式錯誤');
-                }
+        function toggleCurrency() {
+            const modal = document.getElementById('currency-modal');
+            if (modal.classList.contains('hidden')) {
+                modal.classList.remove('hidden');
+                modal.classList.add('animate-fade-in');
+                document.getElementById('jpy-input').focus();
+            } else {
+                modal.classList.add('hidden');
             }
         }
 
-        // F. 應用程式初始化
-        function initApp() {
-            // 1. 確保 Lucide 圖標被渲染
-            window.lucide.createIcons();
-            
-            // 2. 檢查是否有分享的記帳資料
-            loadSharedBudget();
-
-            // 3. 渲染初始頁面 (Home)
-            renderPage('home');
-
-            // 4. 渲染行前檢查清單
-            renderPackingList();
-
-            // 5. 動態渲染天數按鈕
-            renderDayTabs();
-
-            // 6. 初始化倒數計時
-            initCountdown();
-
-            // 7. 初始化天氣圖表 (使用 setTimeout 確保容器寬度已計算)
-            setTimeout(renderWeatherChart, 100);
+        function calcRate() {
+            const jpy = document.getElementById('jpy-input').value;
+            const twd = Math.round(jpy * RATE);
+            document.getElementById('twd-output').innerText = twd.toLocaleString();
         }
 
-        // 啟動應用程式
-        window.onload = initApp;
+        function initApp() {
+            window.lucide.createIcons();
+            
+            renderPackingList();
+            renderDayTabs();
+            initCountdown();
+            loadExpensesFromURL(); // 載入 URL 記帳資料
 
-        // 監聽視窗大小變化，重新繪製圖表以響應寬度
-        window.addEventListener('resize', () => {
-             // Debounce
-             clearTimeout(window.resizeTimer);
-             window.resizeTimer = setTimeout(renderWeatherChart, 200);
-        });
+            // 預設頁面
+            renderPage('home');
+        }
+
+        window.onload = initApp;
 
     </script>
 </body>
