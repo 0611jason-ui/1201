@@ -135,11 +135,20 @@
                 </div>
             </header>
 
-            <div id="weather-card" onclick="window.open(WEATHER_LINK, '_blank')" class="app-card interactive p-5 mb-8 bg-gradient-to-br from-indigo-500 to-indigo-600 text-white shadow-xl overflow-hidden relative">
+            <div id="weather-card" class="app-card p-5 mb-8 bg-gradient-to-br from-indigo-500 to-indigo-600 text-white shadow-xl overflow-hidden relative">
                 <div id="weather-content" class="relative z-10">
                     <div class="flex justify-between items-center mb-1">
-                        <div class="flex items-center">
-                            <p class="text-lg font-medium opacity-90 mr-6">東京 (即時)</p>
+                        <div class="flex items-center relative">
+                            <!-- Location Selector -->
+                            <div class="relative z-20 mr-6">
+                                <p id="weather-location-label" class="text-lg font-medium opacity-90 flex items-center gap-1 cursor-pointer hover:opacity-100 transition-opacity">
+                                    東京 <i data-lucide="chevron-down" class="w-4 h-4 opacity-70"></i> (即時)
+                                </p>
+                                <select id="location-select" onchange="changeWeatherLocation()" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer text-base">
+                                    <!-- Options populated by JS -->
+                                </select>
+                            </div>
+                            
                             <h2 id="weather-temp-today" class="text-4xl font-bold tracking-tighter">
                                 --°
                             </h2>
@@ -148,7 +157,7 @@
                     </div>
                     
                     <!-- Hourly Forecast Scroll -->
-                    <div class="mb-5">
+                    <div class="mb-2">
                         <p class="text-[10px] font-bold opacity-60 uppercase mb-2 tracking-wider">24小時預報</p>
                         <div id="hourly-forecast-container" class="flex overflow-x-auto no-scrollbar space-x-3 pb-2">
                              <!-- Skeleton Loader -->
@@ -157,15 +166,17 @@
                     </div>
 
                     <!-- Weekly Forecast Grid -->
-                    <div class="border-t border-white/10 pt-4">
+                    <div class="border-t border-white/10 pt-2">
                          <div id="weekly-forecast-container" class="grid grid-cols-5 gap-1">
                             <!-- Populated by JS -->
                          </div>
                     </div>
 
-                    <div class="mt-4 pt-2 text-[10px] flex justify-between border-t border-white/10">
+                    <div class="mt-1 pt-2 text-[10px] flex justify-between border-t border-white/10">
                         <span class="opacity-60">資料來源：Open-Meteo</span>
-                        <i data-lucide="external-link" class="w-3 h-3 text-white/60"></i>
+                        <a href="#" onclick="window.open(WEATHER_LINK, '_blank')" class="flex items-center opacity-60 hover:opacity-100">
+                             詳細 <i data-lucide="external-link" class="w-3 h-3 ml-1"></i>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -413,7 +424,15 @@
     </div>
 
     <script>
-        const WEATHER_LOCATION = "東京"; 
+        // 天氣地點設定
+        const weatherLocations = [
+            { name: "東京", lat: 35.6895, lon: 139.6917 },
+            { name: "鎌倉", lat: 35.3192, lon: 139.5467 },
+            { name: "御殿場", lat: 35.3087, lon: 138.9348 },
+            { name: "千葉", lat: 35.6329, lon: 139.8804 } // 使用浦安/舞濱(迪士尼)座標
+        ];
+        let currentLocIndex = 0; // 預設東京
+
         const WEATHER_LINK = "https://www.data.jma.go.jp/multi/yoho/yoho_detail.html?code=130010&lang=cn_zt";
         const SHIBUYA_SKY_IMAGE = "https://www.shibuya-scramble-square.com/sky/images/share_image.png";
         const TEAMLAB_PLANETS_IMAGE = "https://imagedelivery.net/b5EBo9Uo-OK6SM09ZTkEZQ/89JNH3JuCgHZcGbACeD2vU/width=3840,quality=80";
@@ -753,12 +772,41 @@
         // 4. 天氣圖表與列表 (D3.js Removed + Open-Meteo Hourly API)
         // ----------------------------------------------------
         
+        function initLocationSelector() {
+            const select = document.getElementById('location-select');
+            select.innerHTML = '';
+            weatherLocations.forEach((loc, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.text = loc.name;
+                select.appendChild(option);
+            });
+            // 預設為目前選擇的
+            select.value = currentLocIndex;
+        }
+
+        function changeWeatherLocation() {
+            const select = document.getElementById('location-select');
+            currentLocIndex = parseInt(select.value);
+            
+            // 清空舊資料顯示載入中
+            document.getElementById('weather-temp-today').innerText = '--°';
+            document.getElementById('hourly-forecast-container').innerHTML = '<div class="w-full text-center text-xs opacity-50 py-2">切換地區資料讀取中...</div>';
+            
+            fetchWeather();
+        }
+
         async function fetchWeather() {
-            // 東京座標
-            const lat = 35.6895;
-            const lon = 139.6917;
+            const loc = weatherLocations[currentLocIndex];
+            
+            // 更新 UI 文字
+            document.getElementById('weather-location-label').innerHTML = `
+                ${loc.name} <i data-lucide="chevron-down" class="w-4 h-4 opacity-70"></i> (即時)
+            `;
+            window.lucide.createIcons();
+
             // API: daily + hourly data
-            const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&hourly=temperature_2m,weather_code,precipitation_probability&timezone=Asia%2FTokyo`;
+            const url = `https://api.open-meteo.com/v1/forecast?latitude=${loc.lat}&longitude=${loc.lon}&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&hourly=temperature_2m,weather_code,precipitation_probability&timezone=Asia%2FTokyo`;
 
             try {
                 const response = await fetch(url);
@@ -1325,6 +1373,7 @@
         function initApp() {
             window.lucide.createIcons();
             
+            initLocationSelector(); // 初始化地點選單
             renderPackingList();
             renderDayTabs();
             initCountdown();
