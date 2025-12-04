@@ -137,13 +137,12 @@
 
             <div id="weather-card" onclick="window.open(WEATHER_LINK, '_blank')" class="app-card interactive p-5 mb-8 bg-gradient-to-br from-indigo-500 to-indigo-600 text-white shadow-xl overflow-hidden relative">
                 <div id="weather-content" class="relative z-10">
-                    <div class="flex justify-between items-start mb-4">
-                        <div>
-                            <p id="weather-location" class="text-lg font-medium opacity-90">東京 (即時)</p>
-                            <h2 id="weather-temp-today" class="text-4xl font-bold flex items-center tracking-tighter mt-1">
+                    <div class="flex justify-between items-center mb-5">
+                        <div class="flex items-center">
+                            <p class="text-lg font-medium opacity-90 mr-6">東京 (即時)</p>
+                            <h2 id="weather-temp-today" class="text-4xl font-bold tracking-tighter">
                                 --°
                             </h2>
-                            <p class="text-xs opacity-80 mt-1" id="weather-desc-text">正在更新...</p>
                         </div>
                         <i id="weather-main-icon" data-lucide="cloud" class="w-10 h-10 text-white/90"></i>
                     </div>
@@ -797,6 +796,10 @@
                         break;
                     }
                 }
+
+                // 修正1: 抓取目前的即時氣溫與天氣代碼
+                const currentTemp = Math.round(data.hourly.temperature_2m[startIndex]); 
+                const currentCode = data.hourly.weather_code[startIndex];
                 
                 const hourlyData = [];
                 for (let i = 0; i < 24; i++) {
@@ -815,22 +818,26 @@
                     });
                 }
 
-                updateWeatherUI(processedDaily[0]); // Update main card header
+                // 將即時氣溫傳入更新函式
+                updateWeatherUI(processedDaily[0], currentTemp, currentCode); 
                 renderWeeklyForecast(processedDaily);
                 renderHourlyForecast(hourlyData);
 
             } catch (error) {
                 console.error("Fetch Weather Failed", error);
-                document.getElementById('weather-desc-text').innerText = "無法載入即時天氣，請檢查網路。";
+                document.getElementById('weather-temp-today').innerText = "--";
             }
         }
 
-        function updateWeatherUI(today) {
+        function updateWeatherUI(today, currentTemp, currentCode) {
             // 更新卡片上的摘要文字
-            document.getElementById('weather-temp-today').innerText = `${today.tempMax}°`;
-            document.getElementById('weather-desc-text').innerText = `今天 ${today.day}，低溫 ${today.tempMin}°，降雨 ${today.rain}%`;
+            // 修正2: 優先顯示即時氣溫
+            const tempDisplay = currentTemp !== undefined ? currentTemp : today.tempMax;
+            const codeDisplay = currentCode !== undefined ? currentCode : today.code;
+
+            document.getElementById('weather-temp-today').innerText = `${tempDisplay}°`;
             
-            const icon = getWeatherIcon(today.code);
+            const icon = getWeatherIcon(codeDisplay);
             const iconEl = document.getElementById('weather-main-icon');
             iconEl.setAttribute('data-lucide', icon);
             window.lucide.createIcons();
@@ -854,10 +861,11 @@
 
             data.forEach(d => {
                 const iconName = getWeatherIcon(d.code);
+                // 修正3: 圖示從 w-8 h-8 縮小為 w-6 h-6
                 const html = `
                     <div class="flex flex-col items-center justify-between min-w-[5rem] py-3 px-2 bg-white/10 rounded-xl backdrop-blur-sm border border-white/5">
                         <span class="text-xs opacity-90 mb-1 font-medium">${d.time}</span>
-                        <i data-lucide="${iconName}" class="w-8 h-8 text-white mb-2"></i>
+                        <i data-lucide="${iconName}" class="w-6 h-6 text-white mb-2"></i>
                         <div class="flex items-center text-[10px] opacity-80 mb-1">
                             <i data-lucide="droplets" class="w-3 h-3 mr-0.5 ${d.rain > 30 ? 'text-blue-300' : ''}"></i>
                             ${d.rain}%
@@ -878,7 +886,7 @@
             data.forEach(d => {
                 const iconName = getWeatherIcon(d.code);
                 
-                // Horizontal Compact Column with Rain
+                // 修正4: 每日最低溫字體從 opacity-60 text-xs 改為 opacity-80 text-sm font-medium
                 const html = `
                     <div class="flex flex-col items-center w-full py-2">
                         <span class="text-xs font-bold mb-0.5">${d.day}</span>
@@ -892,7 +900,7 @@
 
                         <div class="flex flex-col items-center text-sm space-y-0.5">
                              <span class="font-bold text-base">${d.tempMax}°</span>
-                             <span class="opacity-60 text-xs">${d.tempMin}°</span>
+                             <span class="opacity-80 text-sm font-medium">${d.tempMin}°</span>
                         </div>
                     </div>
                 `;
