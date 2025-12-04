@@ -142,7 +142,7 @@
                             <!-- Location Selector -->
                             <div class="relative z-20 mr-6">
                                 <p id="weather-location-label" class="text-lg font-medium opacity-90 flex items-center gap-1 cursor-pointer hover:opacity-100 transition-opacity">
-                                    東京 <i data-lucide="chevron-down" class="w-4 h-4 opacity-70"></i> (即時)
+                                    東京 <i data-lucide="chevron-down" class="w-5 h-5 opacity-70"></i> (即時)
                                 </p>
                                 <select id="location-select" onchange="changeWeatherLocation()" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer text-base">
                                     <!-- Options populated by JS -->
@@ -429,7 +429,7 @@
             { name: "東京", lat: 35.6895, lon: 139.6917 },
             { name: "鎌倉", lat: 35.3192, lon: 139.5467 },
             { name: "御殿場", lat: 35.3087, lon: 138.9348 },
-            { name: "千葉", lat: 35.6329, lon: 139.8804 } // 使用浦安/舞濱(迪士尼)座標
+            { name: "千葉(迪士尼)", lat: 35.6329, lon: 139.8804 } // 使用浦安/舞濱(迪士尼)座標
         ];
         let currentLocIndex = 0; // 預設東京
 
@@ -801,7 +801,7 @@
             
             // 更新 UI 文字
             document.getElementById('weather-location-label').innerHTML = `
-                ${loc.name} <i data-lucide="chevron-down" class="w-4 h-4 opacity-70"></i> (即時)
+                ${loc.name} <i data-lucide="chevron-down" class="w-5 h-5 opacity-70"></i> (即時)
             `;
             window.lucide.createIcons();
 
