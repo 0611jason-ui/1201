@@ -139,14 +139,12 @@
                 <div id="weather-content" class="relative z-10">
                     <div class="flex justify-between items-center mb-1">
                         <div class="flex items-center relative">
-                            <!-- Location Selector -->
                             <div class="relative z-20 mr-6">
                                 <p id="weather-location-label" class="text-lg font-medium opacity-90 flex items-center gap-1 cursor-pointer hover:opacity-100 transition-opacity">
                                     東京 <i data-lucide="chevron-down" class="w-5 h-5 opacity-70"></i> (即時)
                                 </p>
                                 <select id="location-select" onchange="changeWeatherLocation()" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer text-base">
-                                    <!-- Options populated by JS -->
-                                </select>
+                                    </select>
                             </div>
                             
                             <h2 id="weather-temp-today" class="text-4xl font-bold tracking-tighter">
@@ -156,20 +154,16 @@
                         <i id="weather-main-icon" data-lucide="cloud" class="w-10 h-10 text-white/90"></i>
                     </div>
                     
-                    <!-- Hourly Forecast Scroll -->
                     <div class="mb-2">
                         <p class="text-[10px] font-bold opacity-60 uppercase mb-2 tracking-wider">24小時預報</p>
                         <div id="hourly-forecast-container" class="flex overflow-x-auto no-scrollbar space-x-3 pb-2">
-                             <!-- Skeleton Loader -->
                              <div class="w-full text-center text-xs opacity-50 py-2">資料讀取中...</div>
                         </div>
                     </div>
 
-                    <!-- Weekly Forecast Grid -->
                     <div class="border-t border-white/10 pt-2">
                          <div id="weekly-forecast-container" class="grid grid-cols-5 gap-1">
-                            <!-- Populated by JS -->
-                         </div>
+                            </div>
                     </div>
 
                     <div class="mt-1 pt-2 text-[10px] flex justify-between border-t border-white/10">
@@ -346,14 +340,12 @@
                 <p class="text-sm text-gray-400 mt-1">餐廳、小吃與甜點紀錄</p>
             </header>
 
-            <!-- Filters -->
             <div class="mb-4">
                  <p class="text-xs font-bold text-gray-400 mb-2 uppercase flex items-center">
                     <i data-lucide="map-pin" class="w-3 h-3 mr-1"></i> 地區篩選
                  </p>
                  <div id="dining-area-filters" class="flex space-x-2 overflow-x-auto no-scrollbar pb-2">
-                    <!-- populated by JS -->
-                 </div>
+                    </div>
             </div>
 
             <div class="mb-6">
@@ -361,14 +353,11 @@
                     <i data-lucide="clock" class="w-3 h-3 mr-1"></i> 餐點類別
                  </p>
                  <div id="dining-type-filters" class="flex space-x-2 overflow-x-auto no-scrollbar pb-2">
-                    <!-- populated by JS -->
-                 </div>
+                    </div>
             </div>
 
-            <!-- List -->
             <div id="restaurant-list" class="space-y-6 pb-24">
-                <!-- populated by JS -->
-            </div>
+                </div>
         </div>
 
 
@@ -986,6 +975,23 @@
                         "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSZjBFk7yACtf-TidyOEUEPyN5jD2-0noQ2Rw&s"
                  ]
              },
+             {
+                 id: 3,
+                 name: "根岸牛舌 Negishi",
+                 description: "東京常見的平價美味牛舌連鎖店，特色是提供厚切牛舌、山藥泥麥飯、牛尾湯的套餐。",
+                 area: ["上野", "澀谷", "原宿"], 
+                 locationLinks: {
+                     "上野": "https://maps.app.goo.gl/LstjJ6ZPHSYrDNL79", 
+                     "澀谷": "https://maps.app.goo.gl/LL8RgKEKrvAK844h6",
+                     "原宿": "https://maps.app.goo.gl/SgDAwLuRi4eYB9fs7",
+                 },
+                 link: "", 
+                 types: ["午餐","晚餐"],
+                 images: ["https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRThlTAy4MzNpKzEfsj6w0_7W4v-FRHsQErPg&s",
+                            "https://natasha-traveler.tw/wp-content/uploads/negishi_tokyo-3-1.jpg",
+                        "https://linshibi.com/wp-content/uploads/2025/02/%E7%8D%A8%E5%AE%B63-Negishi%E7%89%9B%E8%88%8C%EF%BC%88%E6%A0%B9%E5%B2%B8%EF%BC%8C%E3%81%AD%E3%81%8E%E3%81%97%EF%BC%89%E6%AF%8F%E7%B5%84%E9%80%81%E4%B8%80%E7%9B%A4%E8%BF%B7%E4%BD%A0%E5%8B%81%E9%81%93%E7%89%9B%E8%88%8C.jpg"
+                 ]
+             },
         ];
         
         let restaurants = defaultRestaurants;
@@ -998,15 +1004,27 @@
             renderRestaurantList();
         }
 
-        // Render Area Filter
+        // Render Area Filter (Updated for Multi-area)
         function renderDiningAreaFilters() {
             const container = document.getElementById('dining-area-filters');
             container.innerHTML = '';
             
-            // Get unique areas + "全部"
-            const areas = ['全部', ...new Set(restaurants.map(r => r.area).filter(Boolean))];
-            
-            areas.forEach(area => {
+            // 使用 Set 來儲存不重複的地區
+            const areaSet = new Set();
+            areaSet.add('全部');
+
+            restaurants.forEach(r => {
+                if (Array.isArray(r.area)) {
+                    // 如果是陣列 (例如根岸牛舌)，把每個地區都加進去
+                    r.area.forEach(a => areaSet.add(a));
+                } else if (r.area) {
+                    // 如果是字串 (單一地區)，直接加進去
+                    areaSet.add(r.area);
+                }
+            });
+
+            // 將 Set 轉回陣列並產生按鈕
+            Array.from(areaSet).forEach(area => {
                 const isSelected = area === selectedDiningArea;
                 const btnClass = isSelected 
                     ? 'selected' 
@@ -1059,9 +1077,18 @@
             const container = document.getElementById('restaurant-list');
             container.innerHTML = '';
             
-            // Filter Logic
+            // Filter Logic (Updated for Multi-area)
             const filtered = restaurants.filter(r => {
-                const matchArea = (selectedDiningArea === '全部') || (r.area === selectedDiningArea);
+                // 地區篩選邏輯：支援陣列包含檢查
+                let matchArea = false;
+                if (selectedDiningArea === '全部') {
+                    matchArea = true;
+                } else if (Array.isArray(r.area)) {
+                    matchArea = r.area.includes(selectedDiningArea);
+                } else {
+                    matchArea = r.area === selectedDiningArea;
+                }
+
                 const matchType = (selectedDiningType === '全部') || (r.types && r.types.includes(selectedDiningType));
                 return matchArea && matchType;
             });
@@ -1076,6 +1103,7 @@
             }
 
             filtered.forEach(res => {
+                // 處理圖片
                 let imageHtml = '';
                 if (res.images && res.images.length > 0) {
                     const images = res.images.map(url => `
@@ -1085,16 +1113,40 @@
                     imageHtml = `<div class="flex space-x-2 overflow-x-auto no-scrollbar mt-3 pb-2">${images}</div>`;
                 }
 
+                // 處理標籤
                 const typesHtml = (res.types || []).map(t => 
                     `<span class="text-[10px] bg-orange-100 text-orange-600 px-2 py-1 rounded-md font-medium mr-1">${t}</span>`
                 ).join('');
+
+                // 處理地區顯示 (如果是陣列，用 / 分隔顯示)
+                const areaLabel = Array.isArray(res.area) ? res.area.join(' / ') : (res.area || '未分類');
+
+                // 處理按鈕生成 (核心修改)
+                let buttonsHtml = '';
+                if (res.locationLinks) {
+                    // 如果有多個連結，產生 grid 按鈕群
+                    const links = Object.entries(res.locationLinks).map(([locName, url]) => `
+                        <a href="${url}" target="_blank" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 text-xs font-bold py-2.5 px-2 rounded-xl flex items-center justify-center transition-colors text-center">
+                            <i data-lucide="map-pin" class="w-3 h-3 mr-1"></i> ${locName}店
+                        </a>
+                    `).join('');
+                    buttonsHtml = `<div class="mt-4 grid grid-cols-3 gap-2">${links}</div>`;
+                } else {
+                    // 傳統單一按鈕
+                    buttonsHtml = `
+                        <a href="${res.link}" target="_blank" class="mt-4 w-full bg-indigo-50 hover:bg-indigo-100 text-indigo-600 font-bold py-2.5 rounded-xl flex items-center justify-center transition-colors">
+                            <i data-lucide="map-pin" class="w-4 h-4 mr-2"></i>
+                            開啟 Google Maps
+                        </a>
+                    `;
+                }
 
                 const html = `
                     <div class="app-card p-5 relative">
                         <div class="flex justify-between items-start">
                             <div>
                                 <div class="flex items-center space-x-2 mb-1">
-                                    <span class="text-xs font-bold text-white bg-gray-400 px-2 py-0.5 rounded-full">${res.area || '未分類'}</span>
+                                    <span class="text-xs font-bold text-white bg-gray-400 px-2 py-0.5 rounded-full max-w-[150px] truncate">${areaLabel}</span>
                                     <div class="flex">${typesHtml}</div>
                                 </div>
                                 <h3 class="text-xl font-bold text-gray-800 leading-tight">${res.name}</h3>
@@ -1103,11 +1155,7 @@
                         </div>
 
                         ${imageHtml}
-
-                        <a href="${res.link}" target="_blank" class="mt-4 w-full bg-indigo-50 hover:bg-indigo-100 text-indigo-600 font-bold py-2.5 rounded-xl flex items-center justify-center transition-colors">
-                            <i data-lucide="map-pin" class="w-4 h-4 mr-2"></i>
-                            開啟 Google Maps
-                        </a>
+                        ${buttonsHtml}
                     </div>
                 `;
                 container.insertAdjacentHTML('beforeend', html);
