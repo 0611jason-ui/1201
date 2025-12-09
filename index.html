@@ -982,8 +982,11 @@
                  area: ["上野", "澀谷", "原宿"], 
                  locationLinks: {
                      "上野": "https://maps.app.goo.gl/LstjJ6ZPHSYrDNL79", 
-                     "澀谷": "https://maps.app.goo.gl/LL8RgKEKrvAK844h6",
+                     "澀谷道玄坂店": "https://maps.app.goo.gl/LL8RgKEKrvAK844h6",
+                     "澀谷中心街店":"https://maps.app.goo.gl/on2jEqhTpsNHjubc6",
                      "原宿": "https://maps.app.goo.gl/SgDAwLuRi4eYB9fs7",
+                     "中文菜單":"https://www.negishi.co.jp/CN/menu.html",
+                     "林4b優惠券":"https://linshibi.com/?p=42950",
                  },
                  link: "", 
                  types: ["午餐","晚餐"],
@@ -1127,7 +1130,7 @@
                     // 如果有多個連結，產生 grid 按鈕群
                     const links = Object.entries(res.locationLinks).map(([locName, url]) => `
                         <a href="${url}" target="_blank" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 text-xs font-bold py-2.5 px-2 rounded-xl flex items-center justify-center transition-colors text-center">
-                            <i data-lucide="map-pin" class="w-3 h-3 mr-1"></i> ${locName}店
+                            <i data-lucide="pin" class="w-3 h-3 mr-1"></i> ${locName}
                         </a>
                     `).join('');
                     buttonsHtml = `<div class="mt-4 grid grid-cols-3 gap-2">${links}</div>`;
@@ -1135,7 +1138,7 @@
                     // 傳統單一按鈕
                     buttonsHtml = `
                         <a href="${res.link}" target="_blank" class="mt-4 w-full bg-indigo-50 hover:bg-indigo-100 text-indigo-600 font-bold py-2.5 rounded-xl flex items-center justify-center transition-colors">
-                            <i data-lucide="map-pin" class="w-4 h-4 mr-2"></i>
+                            <i data-lucide="pin" class="w-4 h-4 mr-2"></i>
                             開啟 Google Maps
                         </a>
                     `;
